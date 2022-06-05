@@ -62,3 +62,19 @@ function getRangeTimeArr($st, $et){
     $days =abs(round($diff / 86400));
     return getRangeTimeArrDays($days+1, $et);
 }
+
+function translateErrMsg($msg)
+{
+    $errArr = [
+        "在位置 0 处没有任何行。"=>"缺少供应商信息",
+        "NoAuthOrData"=>"没有权限或对应数据",
+        "索引超出范围。必须为非负值并小于集合大小。"=>"缺少业务类型"
+    ];
+    foreach ($errArr as $key => $value) {
+        if($key==$msg){
+            $msg = $value;
+        }
+    }
+    return $msg;
+}
+

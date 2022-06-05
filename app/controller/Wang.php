@@ -17,21 +17,23 @@ class Wang extends BaseController
     }
 
     public function test(){
-        $res = qmTest('2022-02-11 13:00:58', '2022-02-11 13:31:58', 10, 1);
+        // $res = qmTest('2022-02-11 13:00:58', '2022-02-11 13:31:58', 10, 1);
         // $res = stockinPurchase('2022-02-01', '2022-02-23');
-        dump($res);
+        // dump($res);
     }
 }
 
 // 采购入库单
-function stockinPurchase($start_time, $end_time, $pageSize, $pageNo){
+function stockinPurchase($start_time, $end_time, $pageSize, $pageNo, $warehouse){
     
     $client = new \WdtErpClient(env('WANG.service_url'), env('WANG.sid'), env('WANG.appkey'), env('WANG.appsecret'));
    
     $pars = array
     (
         'start_time' => $start_time,
-        'end_time' => $end_time
+        'end_time' => $end_time,
+        'warehouse_no'=>$warehouse,
+        'status'=>'80'
     );
     
     $pager = new \Pager($pageSize, $pageNo, true);
@@ -39,13 +41,15 @@ function stockinPurchase($start_time, $end_time, $pageSize, $pageNo){
 }
 
 // 其他入库单（其他入库业务）
-function wangStockinOther($st, $et, $pageSize, $pageNo){
+function wangStockinOther($st, $et, $pageSize, $pageNo, $warehouse){
     $client = new \WdtErpClient(env('WANG.service_url'), env('WANG.sid'), env('WANG.appkey'), env('WANG.appsecret'));//直接输入ip参数
     
     $pars = array
     (    
         'start_time' => $st,
-        'end_time' => $et
+        'end_time' => $et,
+        'warehouse_no'=>$warehouse,
+        'status'=>'80'
     );
     
     $pager = new \Pager($pageSize, $pageNo, true);
@@ -55,13 +59,15 @@ function wangStockinOther($st, $et, $pageSize, $pageNo){
 }
 
 // 调拨入库单
-function wangStockinTransfer($st, $et, $pageSize, $pageNo){
+function wangStockinTransfer($st, $et, $pageSize, $pageNo, $warehouse){
     $client = new \WdtErpClient(env('WANG.service_url'), env('WANG.sid'), env('WANG.appkey'), env('WANG.appsecret'));//直接输入ip参数
     
     $pars = array
     (    
         'start_time' => $st,
-        'end_time' => $et
+        'end_time' => $et,
+        'warehouse_no'=>$warehouse,
+        'status'=>'80'
     );
     
     $pager = new \Pager($pageSize, $pageNo, true);
@@ -73,13 +79,15 @@ function wangStockinTransfer($st, $et, $pageSize, $pageNo){
 }
 
 // 其他出库单
-function wangStockoutOther($st, $et, $pageSize, $pageNo){
+function wangStockoutOther($st, $et, $pageSize, $pageNo, $warehouse){
     $client = new \WdtErpClient(env('WANG.service_url'), env('WANG.sid'), env('WANG.appkey'), env('WANG.appsecret'));//直接输入ip参数
     
     $pars = array
     (    
         'start_time' => $st,
-        'end_time' => $et
+        'end_time' => $et,
+        'warehouse_no'=>$warehouse,
+        'status'=>'70'
     );
     
     $pager = new \Pager($pageSize, $pageNo, true);
@@ -88,13 +96,15 @@ function wangStockoutOther($st, $et, $pageSize, $pageNo){
 }
 
 // 调拨出库单
-function wangStockoutTransfer($st, $et, $pageSize, $pageNo){
+function wangStockoutTransfer($st, $et, $pageSize, $pageNo, $warehouse){
     $client = new \WdtErpClient(env('WANG.service_url'), env('WANG.sid'), env('WANG.appkey'), env('WANG.appsecret'));//直接输入ip参数
     
     $pars = array
     (    
         'start_time' => $st,
-        'end_time' => $et
+        'end_time' => $et,
+        'warehouse_no'=>$warehouse,
+        'status'=>'110'
     );
     
     $pager = new \Pager($pageSize, $pageNo, true);
@@ -103,7 +113,7 @@ function wangStockoutTransfer($st, $et, $pageSize, $pageNo){
 }
 
 // 销售出库单（奇门）
-function qmTest($st, $et, $pageSize, $pageNo){
+function qmTest($st, $et, $pageSize, $pageNo, $warehouse){
 
     $wdtAppKey = env('WANG.appkey');
     $wdtAppSecret = env('WANG.appsecret');
@@ -125,7 +135,8 @@ function qmTest($st, $et, $pageSize, $pageNo){
     $params = array(
         'start_time' => $st,
         'end_time' => $et,
-        'status' => '110'
+        'status' => '110',
+        'warehouse_no'=>$warehouse
     );
     
     $pager = array(
@@ -155,13 +166,15 @@ function qmTest($st, $et, $pageSize, $pageNo){
 }
 
 // 盘点入库单
-function wangQueryStockPdInDetail($st, $et, $pageSize, $pageNo){
+function wangQueryStockPdInDetail($st, $et, $pageSize, $pageNo, $warehouse){
     $client = new \WdtErpClient(env('WANG.service_url'), env('WANG.sid'), env('WANG.appkey'), env('WANG.appsecret'));//直接输入ip参数
     
     $pars = array
     (    
         'start_time' => $st,
-        'end_time' => $et
+        'end_time' => $et,
+        'warehouse_no'=>$warehouse,
+        'status'=>'80'
     );
     // 'warehouse_no' => 'xishuicun3-test'
     
@@ -171,13 +184,15 @@ function wangQueryStockPdInDetail($st, $et, $pageSize, $pageNo){
 }
 
 // 盘点出库单
-function wangQueryStockPdOutDetail($st, $et, $pageSize, $pageNo){
+function wangQueryStockPdOutDetail($st, $et, $pageSize, $pageNo, $warehouse){
     $client = new \WdtErpClient(env('WANG.service_url'), env('WANG.sid'), env('WANG.appkey'), env('WANG.appsecret'));//直接输入ip参数
     
     $pars = array
     (    
         'start_time' => $st,
         'end_time' => $et,
+        'warehouse_no'=>$warehouse,
+        'status'=>'110'
     );
     
     $pager = new \Pager($pageSize, $pageNo, true);
