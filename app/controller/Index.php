@@ -22,23 +22,8 @@ class Index extends BaseController
 
     public function test(){
         // $range =  stockIn('2022-06-01 00:00:00', '2022-06-01 23:59:59', '12');
-        // $warehouse = [
-        //     "id" => 2,
-        //     "wh_type" => "账套仓",
-        //     "wh_name" => "萧山仓-杭州易元宏雷",
-        //     "wh_code" => "12",
-        //     "account" => "",
-        //     "account_code" => ""
-        // ];
-        $warehouse = [
-            "id" => 2,
-            "wh_type" => "公共仓",
-            "wh_name" => "菜鸟-西南成都标准5号仓",
-            "wh_code" => "CTU210",
-            "account" => "",
-            "account_code" => ""
-        ];
-        $range = dealStockInTransfer('2022-06-01 00:00:00', '2022-06-04 00:00:00', $warehouse);
+        
+        $range = dealStockInTransfer('2022-06-01 00:00:00', '2022-06-06 00:00:00');
         // $range = dealStockOutTransfer('2022-06-01 00:00:00', '2022-06-04 00:00:00', $warehouse);
         // $range =  stockOut('2022-04-01 00:00:00', '2022-04-10 00:00:00');
         
@@ -116,17 +101,17 @@ class Index extends BaseController
         }
     }
     public function startDealStockInTransfer(){
-        $warehouseArr = Db::table('fa_warehouse')->select();
+        
         try {
             $startTime = date("Y-m-d H:i:s", $_GET['startTime']);
             $endTime = date("Y-m-d H:i:s", $_GET['endTime']);
             $rangeTimeArr = getRangeTimeArr($startTime, $endTime);
             $msg = '';
             foreach($rangeTimeArr as $rangeTime){
-                foreach($warehouseArr as $wh){
-                    $msg.=dealStockInTransfer($rangeTime['start'], $rangeTime['end'], $wh);
-                    sleep(1);
-                }
+                
+                $msg.=dealStockInTransfer($rangeTime['start'], $rangeTime['end']);
+                sleep(1);
+                
             }
             return $msg;
             
@@ -137,14 +122,17 @@ class Index extends BaseController
     }
     public function startStockOut(){
 
-        
+        $warehouseArr = Db::table('fa_warehouse')->where('wh_type', '账套仓')->select();
         try {
             $startTime = date("Y-m-d H:i:s", $_GET['startTime']);
             $endTime = date("Y-m-d H:i:s", $_GET['endTime']);
             $endTime = date("Y-m-d H:i:s", strtotime("$endTime - 1 days"));
             // echo $startTime;
             // echo $endTime;
-            $res = stockOut($startTime, $endTime);
+            foreach($warehouseArr as $wh){
+                $res = stockOut($startTime, $endTime, $wh);
+            }
+            
             return $res;
         } catch (\Throwable $th) {
             //throw $th;
@@ -386,6 +374,18 @@ function stockIn($st, $et, $warehouse){
                         $msg.="录入失败：".$order->order_no.",".$res.PHP_EOL;
                     }
                     Db::table('fa_order')->insert($newRow);
+                }else if($row['status']=='未同步'){
+                    $res = w2tStockIn($order);
+                    if($res=='null'){
+                        // 单据信息录入到数据库
+                        $row['status'] = '已同步';
+                        $row['result'] = '已同步';
+                    }else{
+                        $row['result'] = translateErrMsg(json_decode($res)->message);
+                        $msg.="录入失败：".$order->order_no.",".$res.PHP_EOL;
+                        
+                    }
+                    Db::table('fa_order')->update($row);
                 }
                 
                
@@ -460,7 +460,7 @@ function w2tStockIn($w_order){
 }
 
 // 销售出库单
-function stockOut($st, $et){
+function stockOut($st, $et, $warehouse){
     $pagesize = 20;
     $msg = '';
     
@@ -475,7 +475,7 @@ function stockOut($st, $et){
             // 获取一天24小时的全部订单
             foreach($rangeTimeArr as $rangeTime){
                 
-                $wangData = qmTest($rangeTime['start'], $rangeTime['end'], $pagesize, 1);
+                $wangData = qmTest($rangeTime['start'], $rangeTime['end'], $pagesize, 1, $warehouse['wh_code']);
                 
                 if($wangData->status==0){
                     
@@ -488,7 +488,7 @@ function stockOut($st, $et){
                             $pages += 1;
                         }
                         for($page=1; $page<=$pages; $page++){
-                            $pageData = qmTest($rangeTime['start'], $rangeTime['end'], $pagesize, $page);
+                            $pageData = qmTest($rangeTime['start'], $rangeTime['end'], $pagesize, $page, $warehouse['wh_code']);
                             $orders = array_merge($orders, $pageData->data->order);
                         }
                     }
@@ -500,90 +500,146 @@ function stockOut($st, $et){
         
             // 检查订单是否已录入，并将订单分类
             foreach($orders as $order){
-                // 只记录账套中存在仓库的订单
-                if(in_array($order->warehouse_no, explode(',', env('Warehouse.xishuicun'))) 
-                || in_array($order->warehouse_no, explode(',', env('Warehouse.hangyi'))) 
-                || in_array($order->warehouse_no, explode(',', env('Warehouse.liangchen')))){
-                    // 查询单据是否已转到t+
-                    $row = Db::table('voucher_log')->where('voucher_id',$order->order_no)->find();
-                    if(!$row){
-                        // dump($order);
-                        // trade_from=2 手工建单 trade_from=3 导入
-                        if($order->trade_from==2 || $order->trade_from==3){
-                            array_push($handmakeOrder, $order);
-                        }
-                        if($order->trade_from==1){ // trade_from=1 API抓单 
-                            array_push($apiOrder, $order);
-                        }
+                // 查询单据是否已转到t+
+                $row = Db::table('fa_order')->where('order_num',$order->order_no)->find();
+                // $row = Db::table('voucher_log')->where('voucher_id',$order->order_no)->find();
+                if(!$row || $row['status']=='未同步'){
+                    // dump($order);
+                    // trade_from=2 手工建单 trade_from=3 导入
+                    if($order->trade_from==2 || $order->trade_from==3){
+                        array_push($handmakeOrder, $order);
+                    }
+                    if($order->trade_from==1){ // trade_from=1 API抓单 
+                        array_push($apiOrder, $order);
                     }
                 }
+                
                 
             }
             // 手工建单 单张录入t+
             if(count($handmakeOrder)>0){
                 
                 foreach($handmakeOrder as $order){
-                    // 单据录入到t+
-                    $res = w2tStockOut($order);
-                    
-                    if($res=='null'){
-                        // 单据信息录入到数据库
-                        $newRow = ['voucher_id'=>$order->order_no, 'isSuccess'=>1, 'voucher_type'=>'销售出库单'];
-                        Db::table('voucher_log')->insert($newRow);
+                    $row = Db::table('fa_order')->where('order_num',$order->order_no)->find();
+                    if(!$row){
+                        $newRow = [
+                            'warehouse'=>$warehouse['wh_name'],
+                            'order_num'=>$order->order_no, 
+                            'order_detail'=>json_encode($order), 
+                            'order_time'=>strtotime($order->consign_time),
+                            'order_type'=>'销售出库单',
+                            'status'=>'未同步',
+                            'result'=>'未同步',
+                        ];
+                        
+                        // 单据录入到t+
+                        $res = w2tStockOut($order);
+                        
+                        if($res=='null'){
+                            // 单据信息录入到数据库
+                            $newRow['status'] = '已同步';
+                            $newRow['result'] = '已同步';
+                        }else{
+                            $newRow['result'] = translateErrMsg(json_decode($res)->message);
+                            $msg.="录入失败：".$order->order_no.",".$res.PHP_EOL;
+                        }
+                        Db::table('fa_order')->insert($newRow); 
                     }else{
-                        $msg.="录入失败：".$order->order_no.",".$res.PHP_EOL;
-                    }        
+                        $res = w2tStockOut($order);
+                        if($res=='null'){
+                            // 单据信息录入到数据库
+                            $row['status'] = '已同步';
+                            $row['result'] = '已同步';
+                        }else{
+                            $row['result'] = translateErrMsg(json_decode($res)->message);
+                            $msg.="录入失败：".$order->order_no.",".$res.PHP_EOL;
+                            
+                        }
+                        Db::table('fa_order')->update($row);
+                    }
+                     
                 }
             }
 
-            // 对抓取的订单根据店铺和仓库进行细分
-            $warehouseUsed = [];
-
+            // 对抓取的订单根据店铺进行细分
             $shopUsed = [];
             foreach($apiOrder as $order){
                 if(!in_array($order->shop_no, $shopUsed)){
                     array_push($shopUsed, $order->shop_no);
                 }
-                if(!in_array($order->warehouse_no, $warehouseUsed)){
-                    array_push($warehouseUsed, $order->warehouse_no);
-                }
             }
 
             $devideOrders = [];
-            foreach($warehouseUsed as $warehouse){
-                foreach($shopUsed as $shop){
-                    $devideOrders[$warehouse][$shop] = [];
-                    foreach($apiOrder as $order){
-                        if($order->warehouse_no==$warehouse && $order->shop_no==$shop){
-                            array_push($devideOrders[$warehouse][$shop], $order);
-                        }
+            
+            foreach($shopUsed as $shop){
+                $devideOrders[$shop] = [];
+                foreach($apiOrder as $order){
+                    if($order->shop_no==$shop){
+                        array_push($devideOrders[$shop], $order);
                     }
+                }
+                
+            }
+            
+            // 接口抓取 合并录入t+
+            foreach($shopUsed as $shop){
+                $mixOrders = $devideOrders[$shop];
+                if(count($mixOrders)>0){
                     
+                    $mixRes = w2tStockOutMany($mixOrders);
+                    
+                    if($mixRes=='null'){
+                        foreach($mixOrders as $order){
+                            $row = Db::table('fa_order')->where('order_num',$order->order_no)->find();
+                            if(!$row){
+                                $newRow = [
+                                    'warehouse'=>$warehouse['wh_name'],
+                                    'order_num'=>$order->order_no, 
+                                    'order_detail'=>json_encode($order), 
+                                    'order_time'=>strtotime($order->consign_time),
+                                    'order_type'=>'销售出库单',
+                                    'status'=>'已同步',
+                                    'result'=>'已同步',
+                                ];
+                                Db::table('fa_order')->insert($newRow);
+                            }else{
+                                $row['status'] = '已同步';
+                                $row['status'] = '已同步';
+                                Db::table('fa_order')->update($row);
+                            }
+                        }
+                    }else{
+                        $str = '';
+                        foreach($mixOrders as $order){
+                            $str.=$order->order_no.', ';
+                        }
+                        foreach($mixOrders as $order){
+                            $row = Db::table('fa_order')->where('order_num',$order->order_no)->find();
+                            $errMsg = translateErrMsg(json_decode($mixRes)->message);
+                            if(!$row){
+                                
+                                $newRow = [
+                                    'warehouse'=>$warehouse['wh_name'],
+                                    'order_num'=>$order->order_no, 
+                                    'order_detail'=>json_encode($order), 
+                                    'order_time'=>strtotime($order->consign_time),
+                                    'order_type'=>'销售出库单',
+                                    'status'=>'未同步',
+                                    'result'=>"合并录入失败,部分单据存在问题：".$errMsg
+                                ];
+                                Db::table('fa_order')->insert($newRow);
+                            }else{
+                                
+                                $row['result'] = "合并录入失败,部分单据存在问题：".$errMsg;
+                                Db::table('fa_order')->update($row);
+                            }
+                        }
+                        $msg.="合并录入失败：".$str.",".$mixRes.PHP_EOL;
+                        
+                    }
                 }
             }
             
-
-            // 接口抓取 合并录入t+
-            foreach($warehouseUsed as $warehouse){
-                foreach($shopUsed as $shop){
-                    $mixOrders = $devideOrders[$warehouse][$shop];
-                    if(count($mixOrders)>0){
-                        $mixRes = w2tStockOutMany($mixOrders);
-                        if($mixRes=='null'){
-                            foreach($mixOrders as $order){
-                                $newRow = ['voucher_id'=>$order->order_no, 'isSuccess'=>1, 'voucher_type'=>'销售出库单'];
-                                Db::table('voucher_log')->insert($newRow);
-                            }
-                        }else{
-                            $str = '';
-                            foreach($mixOrders as $order){
-                                $str.=$order->order_no.', ';
-                            }
-                            $msg.="合并录入失败：".$str.",".$mixRes.PHP_EOL;
-                        }
-                    }
-                }
-            }
         }
         sleep(1);
     }
@@ -770,6 +826,18 @@ function dealStockInOther($st, $et, $warehouse){
                     }
                     Db::table('fa_order')->insert($newRow);
                     
+                }else if($row['status']=='未同步'){
+                    $res = w2tStockInOther($order);
+                    if($res=='null'){
+                        // 单据信息录入到数据库
+                        $row['status'] = '已同步';
+                        $row['result'] = '已同步';
+                    }else{
+                        $row['result'] = translateErrMsg(json_decode($res)->message);
+                        $msg.="录入失败：".$order->order_no.",".$res.PHP_EOL;
+                        
+                    }
+                    Db::table('fa_order')->update($row);
                 }
                 
             }
@@ -882,6 +950,18 @@ function dealStockOutOther($st, $et, $warehouse){
                     }
                     Db::table('fa_order')->insert($newRow);
                     
+                }else if($row['status']=='未同步'){
+                    $res = w2tStockOutOther($order);
+                    if($res=='null'){
+                        // 单据信息录入到数据库
+                        $row['status'] = '已同步';
+                        $row['result'] = '已同步';
+                    }else{
+                        $row['result'] = translateErrMsg(json_decode($res)->message);
+                        $msg.="录入失败：".$order->order_no.",".$res.PHP_EOL;
+                        
+                    }
+                    Db::table('fa_order')->update($row);
                 }
             }
         }
@@ -993,6 +1073,18 @@ function dealStockInPd($st, $et, $warehouse){
                     }
                     Db::table('fa_order')->insert($newRow);
                     
+                }else if($row['status']=='未同步'){
+                    $res = w2tStockInPd($order);
+                    if($res=='null'){
+                        // 单据信息录入到数据库
+                        $row['status'] = '已同步';
+                        $row['result'] = '已同步';
+                    }else{
+                        $row['result'] = translateErrMsg(json_decode($res)->message);
+                        $msg.="录入失败：".$order->order_no.",".$res.PHP_EOL;
+                        
+                    }
+                    Db::table('fa_order')->update($row);
                 }
                 
             }
@@ -1059,7 +1151,7 @@ function dealStockOutPd($st, $et, $warehouse){
     $msg = '';
     
     // 查询旺店通单据
-    $wangData = wangQueryStockPdOutDetail($st, $et, $pageSize, 0, $warehouse);
+    $wangData = wangQueryStockPdOutDetail($st, $et, $pageSize, 0, $warehouse['wh_code']);
     
     if($wangData->status==0){
         $orders = [];
@@ -1102,6 +1194,18 @@ function dealStockOutPd($st, $et, $warehouse){
                         $msg.="录入失败：".$order->order_no.",".$res.PHP_EOL;
                     }
                     Db::table('fa_order')->insert($newRow);
+                }else if($row['status']=='未同步'){
+                    $res = w2tStockOutPd($order);
+                    if($res=='null'){
+                        // 单据信息录入到数据库
+                        $row['status'] = '已同步';
+                        $row['result'] = '已同步';
+                    }else{
+                        $row['result'] = translateErrMsg(json_decode($res)->message);
+                        $msg.="录入失败：".$order->order_no.",".$res.PHP_EOL;
+                        
+                    }
+                    Db::table('fa_order')->update($row);
                 }
             }
         }
@@ -1162,31 +1266,30 @@ function w2tStockOutPd($w_order){
 }
 
 // 调拨入库单
-function dealStockInTransfer($st, $et, $warehouse){
+function dealStockInTransfer($st, $et){
     $pageSize = 50;
     $msg = '';
     
     // 查询旺店通单据
     try {
         //code...
-        $wangData = wangStockinTransfer($st, $et, $pageSize, 0, $warehouse['wh_code']);
+        $wangData = wangStockinTransfer($st, $et, $pageSize, 0);
     } catch (\Throwable $th) {
         //throw $th;
         return $th;
     }
     
-    
     if($wangData->status==0){
         $orders = [];
         $total = $wangData->data->total_count;
-        $msg=$msg.$warehouse['wh_name'].' '.date("Y-m-d",strtotime($st)).' 查询到'.$total."条数据".PHP_EOL;
+        $msg=$msg.date("Y-m-d",strtotime($st)).' 查询到'.$total."条数据".PHP_EOL;
         if($total>0){
             $pages = intval($total / $pageSize);
             if($total % $pageSize != 0){
                 $pages += 1;
             }
             for($page=0; $page<$pages; $page++){
-                $pageData = wangStockinTransfer($st, $et, $pageSize, $page, $warehouse['wh_code']);
+                $pageData = wangStockinTransfer($st, $et, $pageSize, $page);
                 $orders = array_merge($orders, $pageData->data->order);
             }
             foreach($orders as $order){
@@ -1197,7 +1300,7 @@ function dealStockInTransfer($st, $et, $warehouse){
                 if(!$row){
                     // 单据录入到t+
                     $newRow = [
-                        'warehouse'=>$warehouse['wh_name'],
+                        'warehouse'=>$order->to_warehouse_name,
                         'order_num'=>$order->order_no, 
                         'order_detail'=>json_encode($order), 
                         'order_time'=>$order->modified/1000,
@@ -1217,6 +1320,18 @@ function dealStockInTransfer($st, $et, $warehouse){
                         $msg.="录入失败：".$order->order_no.",".$res.PHP_EOL;
                     }
                     Db::table('fa_order')->insert($newRow);
+                }else if($row['status']=='未同步'){
+                    $res = w2tStockInTransfer($order);
+                    if($res=='null'){
+                        // 单据信息录入到数据库
+                        $row['status'] = '已同步';
+                        $row['result'] = '已同步';
+                    }else{
+                        $row['result'] = translateErrMsg(json_decode($res)->message);
+                        $msg.="录入失败：".$order->order_no.",".$res.PHP_EOL;
+                        
+                    }
+                    Db::table('fa_order')->update($row);
                 }
             }
         }
@@ -1336,6 +1451,18 @@ function dealStockOutTransfer($st, $et, $warehouse){
                         $msg.="录入失败：".$order->order_no.",".$res.PHP_EOL;
                     }
                     Db::table('fa_order')->insert($newRow);
+                }else if($row['status']=='未同步'){
+                    $res = w2tStockOutTransfer($order);
+                    if($res=='null'){
+                        // 单据信息录入到数据库
+                        $row['status'] = '已同步';
+                        $row['result'] = '已同步';
+                    }else{
+                        $row['result'] = translateErrMsg(json_decode($res)->message);
+                        $msg.="录入失败：".$order->order_no.",".$res.PHP_EOL;
+                        
+                    }
+                    Db::table('fa_order')->update($row);
                 }
             }
         }

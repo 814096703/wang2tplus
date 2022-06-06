@@ -17,9 +17,10 @@ class Wang extends BaseController
     }
 
     public function test(){
-        // $res = qmTest('2022-02-11 13:00:58', '2022-02-11 13:31:58', 10, 1);
+        // $res = qmTest('2022-06-01 14:28:58', '2022-06-01 15:28:58', 10, 1, '01');
         // $res = stockinPurchase('2022-02-01', '2022-02-23');
-        // dump($res);
+        $res = wangStockinTransfer('2022-06-01 00:00:00', '2022-06-06 00:00:00', 10, 0);
+        dump($res);
     }
 }
 
@@ -59,14 +60,13 @@ function wangStockinOther($st, $et, $pageSize, $pageNo, $warehouse){
 }
 
 // 调拨入库单
-function wangStockinTransfer($st, $et, $pageSize, $pageNo, $warehouse){
+function wangStockinTransfer($st, $et, $pageSize, $pageNo){
     $client = new \WdtErpClient(env('WANG.service_url'), env('WANG.sid'), env('WANG.appkey'), env('WANG.appsecret'));//直接输入ip参数
     
     $pars = array
     (    
         'start_time' => $st,
         'end_time' => $et,
-        'warehouse_no'=>$warehouse,
         'status'=>'80'
     );
     
@@ -135,7 +135,7 @@ function qmTest($st, $et, $pageSize, $pageNo, $warehouse){
     $params = array(
         'start_time' => $st,
         'end_time' => $et,
-        'status' => '110',
+        'status' => '95',
         'warehouse_no'=>$warehouse
     );
     
