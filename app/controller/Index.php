@@ -23,14 +23,14 @@ class Index extends BaseController
     public function test(){
         // $range =  stockIn('2022-06-01 00:00:00', '2022-06-01 23:59:59', '12');
         
-        $range = dealStockInTransfer('2022-06-01 00:00:00', '2022-06-06 00:00:00');
+        // $range = dealStockInTransfer('2022-06-01 00:00:00', '2022-06-06 00:00:00');
         // $range = dealStockOutTransfer('2022-06-01 00:00:00', '2022-06-04 00:00:00', $warehouse);
         // $range =  stockOut('2022-04-01 00:00:00', '2022-04-10 00:00:00');
         
-        dump($range);
+        // dump($range);
         
         // echo date("Y-m-d H:i:s", strtotime('2022-02-11'));
-        // addWh();
+        addWh();
         // $warehouseArr = Db::table('fa_warehouse')->select();
         // dump($warehouseArr);
         // foreach($warehouseArr as $warehouse){
