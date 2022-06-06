@@ -203,91 +203,157 @@ class Index extends BaseController
 }
 
 function addWh(){
-    $wh_name_str = '京东-上海商超B牛奶水饮仓4号库,
-        京东-广州公共平台仓7号库,
-        京东-德州商超B牛奶水饮仓3号库,
-        京东-北京商超B牛奶水饮仓10号库,
-        京东-北京服装仓10号库,
-        京东-武汉公共平台仓16号库,
-        京东-上海服装仓2号库,
-        京东-西安公共平台仓2号库,
-        京东-上海商超B牛奶水饮4号库,
-        京东-武汉商超B母婴玩具仓2号库,
-        京东-成都商超A休闲食品仓3号库,
-        京东-成都公共平台仓3号库,
-        京东-上海公共平台仓13号库,
-        京东-广州公共平台仓14号库,
-        京东-沈阳-商超B牛奶水饮仓2号库,
-        京东-西安-商超B仓1号库,
-        京东-沈阳商超B牛奶水饮仓2号库,
-        京东-西安商超B仓1号库,
-        京东-德州商超B牛奶水饮仓3号库-致中和,
-        京东-成都亚一商超B牛奶水饮仓2号库,
-        京东-上海商超B牛奶水饮仓1号库,
-        京东-上海商超B牛奶水饮仓5号库,
-        京东-广州商超B牛奶水饮仓1号库（新）,
-        京东-广州商超B牛奶水饮仓7号库,
-        京东-北京商超B牛奶水饮仓5号库,
-        京东-北京公共平台仓20号库,
-        京东-北京公共平台仓17号库,
-        京东-武汉-商超B米面粮油仓2号库,
-        菜鸟-华中武汉标准7号仓,
-        菜鸟-华南东莞标准4号仓,
-        菜鸟-东北沈阳标准5号仓,
-        菜鸟-华北天津标准21号仓,
-        菜鸟-华东桐乡标准1号仓,
-        菜鸟-西北西安标准3号仓,
-        菜鸟-西南成都标准5号仓,
-        萧山仓-滞销仓,
-        萧山仓-残次品仓';
-    $wh_code_str = '110025420,
-        110007718,
-        110024008,
-        110025428,
-        110021762,
-        118064266,
-        110007127,
-        110007316,
-        110008258,
-        101,
-        128,
-        110008141,
-        110008435,
-        110009010,
-        110008173,
-        110009210,
-        42,
-        62,
-        102,
-        138,
-        145,
-        147,
-        316,
-        317,
-        331,
-        110008427,
-        110009123,
-        5-102,
-        XGN201,
-        DGM205,
-        SHE206,
-        TSN241,
-        TOX201,
-        XIY204,
-        CTU210,
-        04,
-        03';
-    $name_arr = explode(',', $wh_name_str);
-    $code_arr = explode(',', $wh_code_str);
-    $size = count($name_arr);
+    $shop_no = 'DS53,
+            DS52,
+            DS80,
+            DS76,
+            DS74,
+            DS71,
+            DS69,
+            DS66,
+            DS64,
+            DS63,
+            DS59,
+            DS57,
+            DS60,
+            DS55,
+            DS54,
+            A0013,
+            A0011,
+            DS33,
+            A0008,
+            A0007,
+            A0006,
+            21,
+            DS146,
+            DS145,
+            B1022,
+            DS51,
+            DS46,
+            DS44,
+            06,
+            DS31,
+            DS34,
+            DS24,
+            DS26,
+            DS83,
+            ';
+    $shop_name = '杭州习水村酒业有限公司,
+        民酒汇（杭州）电子商务有限责任公司,
+        民酒汇-抖音民酒汇酒类专营店,
+        杭易-天猫惠群贵礼旗舰店,
+        习水村-快手习水村酒类专营店,
+        习水村-拼多多金沙回沙酒习水村专卖店,
+        习水村-京东沱牌舍得专卖店,
+        浙江良辰美酒贸易有限公司,
+        良辰美酒-淘宝拍卖店,
+        习水村-天猫丹泉习水村专卖店,
+        习水村-抖音习水村酒类专营店,
+        习水村-京东今世缘白酒旗舰店,
+        习水村-天猫习酒习水村专卖店,
+        习水村-天猫摘要习水村专卖店,
+        习水村-天猫石库门习水村专卖店,
+        习水村-天猫衡水老白干习水村专卖店,
+        习水村-天猫咸亨习水村专卖店,
+        杭易-天猫易元宏雷酒类专营店,
+        习水村-拼多多惠峰酒类专营店,
+        习水村-拼多多习酒习水村专卖店,
+        习水村-拼多多盛峰酒类专营店,
+        杭易-拼多多林川酒类专营店,
+        杭易-拼多多致中和酒类旗舰店,
+        杭易-拼多多易元宏雷酒类专营店,
+        杭州易元宏雷贸易有限公司（非电商）,
+        习水村-京东习酒酒类旗舰店,
+        习水村-京东金沙酒类旗舰店,
+        习水村-京东衡水老白干酒类旗舰店,
+        杭易-京东易元宏雷官方旗舰店,
+        杭易-京东咸亨旗舰店,
+        杭易-京东致中和旗舰店,
+        杭易-京东购喝旗舰店,
+        杭易-京东浣纱坊旗舰店,
+        习水村-天猫淘特店';
+    $account_name = '习水村,
+                    民酒汇,
+                    民酒汇,
+                    杭易,
+                    习水村,
+                    习水村,
+                    习水村,
+                    良辰美酒,
+                    良辰美酒,
+                    习水村,
+                    习水村,
+                    习水村,
+                    习水村,
+                    习水村,
+                    习水村,
+                    习水村,
+                    习水村,
+                    杭易,
+                    习水村,
+                    习水村,
+                    习水村,
+                    杭易,
+                    杭易,
+                    杭易,
+                    杭易,
+                    习水村,
+                    习水村,
+                    习水村,
+                    杭易,
+                    杭易,
+                    杭易,
+                    杭易,
+                    杭易,
+                    习水村';
+    $account_code = '301,
+                    305,
+                    305,
+                    302,
+                    301,
+                    301,
+                    301,
+                    303,
+                    303,
+                    301,
+                    301,
+                    301,
+                    301,
+                    301,
+                    301,
+                    301,
+                    301,
+                    302,
+                    301,
+                    301,
+                    301,
+                    302,
+                    302,
+                    302,
+                    302,
+                    301,
+                    301,
+                    301,
+                    302,
+                    302,
+                    302,
+                    302,
+                    302,
+                    301';
+    $shop_no_arr = explode(',', $shop_no);
+    $shop_name_arr = explode(',', $shop_name);
+    $account_code_arr = explode(',', $account_code);
+    $account_name_arr = explode(',', $account_name);
+    $size = count($shop_no_arr);
     
     for($index=0; $index<$size; $index++){
         $row = [
-            'wh_type'=>'公共仓', 
-            'wh_name'=>trim($name_arr[$index]), 
-            'wh_code'=>trim($code_arr[$index])
+            'shop_no'=>trim($shop_no_arr[$index]), 
+            'shop_name'=>trim($shop_name_arr[$index]), 
+            'account_code'=>trim($account_code_arr[$index]),
+            'account_name'=>trim($account_name_arr[$index])
         ];
-        Db::table('fa_warehouse')->insert($row);
+        Db::table('fa_shop')->insert($row);
     }
 }
 
@@ -320,6 +386,34 @@ function getInfoArr($warehouse_no){
         }
     }
    
+    
+    return $infoArr;
+}
+
+function getInfoArrByshop($shop_no){
+    // 仓库编码查找仓库
+    $warehouse = Db::table('fa_shop')
+        ->where('shop_no', $shop_no)
+        ->find();
+    
+    $infoArr = [];
+   
+    // 根据仓库中的账套编码返回接口必须信息
+    if($warehouse['account_code']=='302'){
+        $infoArr['appKey'] = env('TPLUS2.appKey');
+        $infoArr['appSecret'] = env('TPLUS2.appSecret');
+        $infoArr['token'] = TplusApi2::getOpenToken();
+    }
+    if($warehouse['account_code']=='301'){
+        $infoArr['appKey'] = env('TPLUS.appKey');
+        $infoArr['appSecret'] = env('TPLUS.appSecret');
+        $infoArr['token'] = getOpenToken();
+    }
+    if($warehouse['account_code']=='303'){
+        $infoArr['appKey'] = env('TPLUS3.appKey');
+        $infoArr['appSecret'] = env('TPLUS3.appSecret');
+        $infoArr['token'] = TplusApi3::getOpenToken();
+    }
     
     return $infoArr;
 }
