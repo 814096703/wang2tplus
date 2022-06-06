@@ -795,12 +795,12 @@ function w2tStockOut($w_order){
         }
     }';
 
-    $infoArr = getInfoArr($w_order->warehouse_no);
+    $infoArr = getInfoArrByshop($w_order->shop_no);
     // $res = saleDispatchCreate($infoArr['appKey'], $infoArr['appSecret'], $infoArr['token'], $content);
     if(count($infoArr)>0){
         $res = saleDispatchCreate($infoArr['appKey'], $infoArr['appSecret'], $infoArr['token'], $content);
     }else{
-        $res = `{"code":"EXERROR0001","message":"目标仓库没有可执行账套","data":{"Code":"EXERROR0001","StatusCode":400,"islogerror":"1"}}`;
+        $res = `{"code":"EXERROR0001","message":"目标店铺`.$w_order->shop_no.`没有可执行账套","data":{"Code":"EXERROR0001","StatusCode":400,"islogerror":"1"}}`;
     }
 
     return $res;
@@ -859,13 +859,13 @@ function w2tStockOutMany($orders){
     }';
 
 
-    $infoArr = getInfoArr($orders[0]->warehouse_no);
+    $infoArr = getInfoArrByshop($orders[0]->shop_no);
     
     // $res = saleDispatchCreate($infoArr['appKey'], $infoArr['appSecret'], $infoArr['token'], $content);
     if(count($infoArr)>0){
         $res = saleDispatchCreate($infoArr['appKey'], $infoArr['appSecret'], $infoArr['token'], $content);
     }else{
-        $res = `{"code":"EXERROR0001","message":"目标仓库没有可执行账套","data":{"Code":"EXERROR0001","StatusCode":400,"islogerror":"1"}}`;
+        $res = `{"code":"EXERROR0001","message":"目标店铺`.$orders[0]->shop_no.`没有可执行账套","data":{"Code":"EXERROR0001","StatusCode":400,"islogerror":"1"}}`;
     }
 
     return $res;
