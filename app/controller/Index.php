@@ -392,24 +392,24 @@ function getInfoArr($warehouse_no){
 
 function getInfoArrByshop($shop_no){
     // 仓库编码查找仓库
-    $warehouse = Db::table('fa_shop')
+    $shop = Db::table('fa_shop')
         ->where('shop_no', $shop_no)
         ->find();
     
     $infoArr = [];
    
     // 根据仓库中的账套编码返回接口必须信息
-    if($warehouse['account_code']=='302'){
+    if($shop['account_code']=='302'){
         $infoArr['appKey'] = env('TPLUS2.appKey');
         $infoArr['appSecret'] = env('TPLUS2.appSecret');
         $infoArr['token'] = TplusApi2::getOpenToken();
     }
-    if($warehouse['account_code']=='301'){
+    if($shop['account_code']=='301'){
         $infoArr['appKey'] = env('TPLUS.appKey');
         $infoArr['appSecret'] = env('TPLUS.appSecret');
         $infoArr['token'] = getOpenToken();
     }
-    if($warehouse['account_code']=='303'){
+    if($shop['account_code']=='303'){
         $infoArr['appKey'] = env('TPLUS3.appKey');
         $infoArr['appSecret'] = env('TPLUS3.appSecret');
         $infoArr['token'] = TplusApi3::getOpenToken();
@@ -614,6 +614,9 @@ function stockOut($st, $et, $warehouse){
             if(count($handmakeOrder)>0){
                 
                 foreach($handmakeOrder as $order){
+                    // 单据录入到t+
+                    $res = w2tStockOut($order);
+
                     $row = Db::table('fa_order')->where('order_num',$order->order_no)->find();
                     if(!$row){
                         $newRow = [
@@ -626,25 +629,25 @@ function stockOut($st, $et, $warehouse){
                             'result'=>'未同步',
                         ];
                         
-                        // 单据录入到t+
-                        $res = w2tStockOut($order);
-                        
                         if($res=='null'){
                             // 单据信息录入到数据库
                             $newRow['status'] = '已同步';
                             $newRow['result'] = '已同步';
                         }else{
+                           
                             $newRow['result'] = translateErrMsg(json_decode($res)->message);
                             $msg.="录入失败：".$order->order_no.",".$res.PHP_EOL;
                         }
                         Db::table('fa_order')->insert($newRow); 
                     }else{
-                        $res = w2tStockOut($order);
+                        
                         if($res=='null'){
                             // 单据信息录入到数据库
+                            $row['order_detail'] = json_encode($order);
                             $row['status'] = '已同步';
                             $row['result'] = '已同步';
                         }else{
+                            
                             $row['result'] = translateErrMsg(json_decode($res)->message);
                             $msg.="录入失败：".$order->order_no.",".$res.PHP_EOL;
                             
@@ -799,8 +802,10 @@ function w2tStockOut($w_order){
     // $res = saleDispatchCreate($infoArr['appKey'], $infoArr['appSecret'], $infoArr['token'], $content);
     if(count($infoArr)>0){
         $res = saleDispatchCreate($infoArr['appKey'], $infoArr['appSecret'], $infoArr['token'], $content);
+       
     }else{
-        $res = `{"code":"EXERROR0001","message":"目标店铺`.$w_order->shop_no.`没有可执行账套","data":{"Code":"EXERROR0001","StatusCode":400,"islogerror":"1"}}`;
+        $res = '{"code":"EXERROR0001","message":"目标店铺没有可执行账套","data":{"Code":"EXERROR0001","StatusCode":400,"islogerror":"1"}}';
+        echo('res='.$res.'end');
     }
 
     return $res;
@@ -865,7 +870,8 @@ function w2tStockOutMany($orders){
     if(count($infoArr)>0){
         $res = saleDispatchCreate($infoArr['appKey'], $infoArr['appSecret'], $infoArr['token'], $content);
     }else{
-        $res = `{"code":"EXERROR0001","message":"目标店铺`.$orders[0]->shop_no.`没有可执行账套","data":{"Code":"EXERROR0001","StatusCode":400,"islogerror":"1"}}`;
+        $res = '{"code":"EXERROR0001","message":"目标店铺没有可执行账套","data":{"Code":"EXERROR0001","StatusCode":400,"islogerror":"1"}}';
+        echo('res='.$res.'end');
     }
 
     return $res;
