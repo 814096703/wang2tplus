@@ -591,6 +591,11 @@ function getInfoArr($warehouse_no){
             $infoArr['appSecret'] = env('TPLUS3.appSecret');
             $infoArr['token'] = TplusApi3::getOpenToken();
         }
+        if($warehouse['account_code']=='305'){
+            $infoArr['appKey'] = env('TPLUS4.appKey');
+            $infoArr['appSecret'] = env('TPLUS4.appSecret');
+            $infoArr['token'] = TplusApi4::getOpenToken();
+        }
     }
    
     
@@ -620,6 +625,11 @@ function getInfoArrByshop($shop_no){
         $infoArr['appKey'] = env('TPLUS3.appKey');
         $infoArr['appSecret'] = env('TPLUS3.appSecret');
         $infoArr['token'] = TplusApi3::getOpenToken();
+    }
+    if($shop['account_code']=='305'){
+        $infoArr['appKey'] = env('TPLUS4.appKey');
+        $infoArr['appSecret'] = env('TPLUS4.appSecret');
+        $infoArr['token'] = TplusApi4::getOpenToken();
     }
     
     return $infoArr;
@@ -1010,7 +1020,7 @@ function w2tStockOut($w_order){
         $res = saleDispatchCreate($infoArr['appKey'], $infoArr['appSecret'], $infoArr['token'], $content);
        
     }else{
-        $res = '{"code":"EXERROR0001","message":"目标店铺没有可执行账套","data":{"Code":"EXERROR0001","StatusCode":400,"islogerror":"1"}}';
+        $res = '{"code":"EXERROR0001","message":"目标店铺'.$w_order->shop_no.'没有可执行账套","data":{"Code":"EXERROR0001","StatusCode":400,"islogerror":"1"}}';
         echo('res='.$res.'end');
     }
 
@@ -1076,8 +1086,8 @@ function w2tStockOutMany($orders){
     if(count($infoArr)>0){
         $res = saleDispatchCreate($infoArr['appKey'], $infoArr['appSecret'], $infoArr['token'], $content);
     }else{
-        $res = '{"code":"EXERROR0001","message":"目标店铺没有可执行账套","data":{"Code":"EXERROR0001","StatusCode":400,"islogerror":"1"}}';
-        echo('res='.$res.'end');
+        $res = '{"code":"EXERROR0001","message":"目标店铺'.$orders[0]->shop_no.'没有可执行账套","data":{"Code":"EXERROR0001","StatusCode":400,"islogerror":"1"}}';
+        // echo('res='.$res.'end');
     }
 
     return $res;
@@ -1114,7 +1124,7 @@ function dealStockInOther($st, $et, $warehouse){
                         'warehouse'=>$warehouse['wh_name'],
                         'order_num'=>$order->order_no, 
                         'order_detail'=>json_encode($order), 
-                        'order_time'=>$order->modified/1000,
+                        'order_time'=>$order->stockin_time/1000,
                         'order_type'=>'其他入库单',
                         'status'=>'未同步',
                         'result'=>'未同步',
@@ -1361,7 +1371,7 @@ function dealStockInPd($st, $et, $warehouse){
                         'warehouse'=>$warehouse['wh_name'],
                         'order_num'=>$order->order_no, 
                         'order_detail'=>json_encode($order), 
-                        'order_time'=>$order->modified/1000,
+                        'order_time'=>$order->stockin_time/1000,
                         'order_type'=>'其他入库单',
                         'status'=>'未同步',
                         'result'=>'未同步',
