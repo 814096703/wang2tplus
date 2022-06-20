@@ -24,9 +24,10 @@ class Index extends BaseController
         // $range =  stockIn('2022-06-01 00:00:00', '2022-06-01 23:59:59', '12');
         // $range = dealStockInTransfer('2022-06-01 00:00:00', '2022-06-06 00:00:00');
         // $range = dealStockOutTransfer('2022-06-01 00:00:00', '2022-06-04 00:00:00', $warehouse);
-        // $range =  stockOut('2022-04-01 00:00:00', '2022-04-10 00:00:00');
+        $warehouse = Db::table('fa_warehouse')->where('wh_code', '01')->find();
+        $range =  stockOut('2022-06-01 00:00:00', '2022-06-02 00:00:00', $warehouse);
         
-        // dump($range);
+        dump($range);
         
         // echo date("Y-m-d H:i:s", strtotime('2022-02-11'));
         // addWh();
@@ -256,7 +257,7 @@ class Index extends BaseController
             foreach($rangeTimeArr as $rangeTime){
                 foreach($warehouseArr as $warehouse){
                     $msg.=stockIn($rangeTime['start'], $rangeTime['end'], $warehouse);
-                    sleep(1);
+                    sleep(2);
                 }
                 
             }
@@ -713,18 +714,18 @@ function stockIn($st, $et, $warehouse){
 function w2tStockIn($w_order){
     $details = '';
     foreach($w_order->details_list as $key=>$item){
-        $item->unit_name=($item->unit_name=='无' ? "件" : $item->unit_name);
+        // $item->unit_name=($item->unit_name=='无' ? "件" : $item->unit_name);
         $detail = '{
-            Inventory: {
+            "Inventory": {
                 Code: "'.$item->spec_no.'"
             },
-                Unit:{Name:"'.$item->unit_name.'"},
-            Quantity: '.$item->num.',
-            Amount: '.$item->total_cost.',
-            Price: '.$item->cost_price.',
-            taxAmount: '.$item->tax_amount.',
-            taxPrice: '.$item->tax_price.',
-            TaxRate: '.(floatval($item->tax)/100).'
+            "Unit":{Name:"'.$item->unit_name.'"},
+            "Quantity": '.$item->num.',
+            "taxPrice": '.$item->tax_price.',
+            "taxAmount": '.$item->tax_amount.',
+            "Price": '.$item->tax_price/1.13.',
+            "Amount": '.$item->tax_amount/1.13.',
+            "TaxRate": 0.13
         }';
         if(count($w_order->details_list)==($key+1)){
             $details.=$detail;
@@ -817,11 +818,13 @@ function stockOut($st, $et, $warehouse){
                 if(!$row || $row['status']=='未同步'){
                     // dump($order);
                     // trade_from=2 手工建单 trade_from=3 导入
-                    if($order->trade_from==2 || $order->trade_from==3){
-                        array_push($handmakeOrder, $order);
-                    }
+                    // if($order->trade_from==2 || $order->trade_from==3){
+                    //     array_push($handmakeOrder, $order);
+                    // }
                     if($order->trade_from==1){ // trade_from=1 API抓单 
                         array_push($apiOrder, $order);
+                    }else{
+                        array_push($handmakeOrder, $order);
                     }
                 }
                 
@@ -851,9 +854,9 @@ function stockOut($st, $et, $warehouse){
                             $newRow['status'] = '已同步';
                             $newRow['result'] = '已同步';
                         }else{
-                           
-                            $newRow['result'] = translateErrMsg(json_decode($res)->message);
                             $msg.="录入失败：".$order->order_no.",".$res.PHP_EOL;
+                            $newRow['result'] = translateErrMsg(json_decode($res)->message);
+                            
                         }
                         Db::table('fa_order')->insert($newRow); 
                     }else{
@@ -864,9 +867,9 @@ function stockOut($st, $et, $warehouse){
                             $row['status'] = '已同步';
                             $row['result'] = '已同步';
                         }else{
-                            
-                            $row['result'] = translateErrMsg(json_decode($res)->message);
                             $msg.="录入失败：".$order->order_no.",".$res.PHP_EOL;
+                            $row['result'] = translateErrMsg(json_decode($res)->message);
+                            
                             
                         }
                         Db::table('fa_order')->update($row);
@@ -924,6 +927,7 @@ function stockOut($st, $et, $warehouse){
                         }
                     }else{
                         $str = '';
+                        $msg.="合并录入失败：".$str.",".$mixRes.PHP_EOL;
                         
                         foreach($mixOrders as $order){
                             $str.=$order->order_no.', ';
@@ -947,7 +951,6 @@ function stockOut($st, $et, $warehouse){
                                 Db::table('fa_order')->update($row);
                             }
                         }
-                        $msg.="合并录入失败：".$str.",".$mixRes.PHP_EOL;
                         
                     }
                 }
@@ -985,7 +988,22 @@ function w2tStockOut($w_order){
             $details.=$detail.',';
         }
     }
-    
+
+    $partner='';
+    $saleman='';
+    // 店铺名包含 '公司' ,客户网名作为客户，有业务员，不合并
+    // 网店，店铺作为客户，合并随意，没有业务员
+    if(strstr($w_order->shop_name, '公司')==false){
+        $partner=$w_order->shop_no;
+        
+    }else{
+        $partner=$w_order->customer_no;
+        $saleman = 'Clerk: {
+            Code: "'.$w_order->salesman_no.'"
+        },';
+    }
+     
+
     // 转化为t+数据格式
     $content = '{
         dto: {
@@ -995,7 +1013,7 @@ function w2tStockOut($w_order){
                 Code: "ST1021"
             },
             Partner: {
-                Code: "'.$w_order->shop_no.'"
+                Code: "'.$partner.'"
             },
             VoucherDate: "'.date('Y-m-d',strtotime($w_order->consign_time)).'",
             BusiType: {
@@ -1004,16 +1022,15 @@ function w2tStockOut($w_order){
             Warehouse: {
                 Code: "'.$w_order->warehouse_no.'"
             },
-            Clerk: {
-                Code: "'.$w_order->salesman_no.'"
-            },
-            Memo: "'.$w_order->remark.'",
+            '.$saleman.'
+            Memo: "'.$w_order->cs_remark.'",
             RDRecordDetails: [
                 '.$details.'
             ]
         }
     }';
 
+    // dump($content);
     $infoArr = getInfoArrByshop($w_order->shop_no);
     // $res = saleDispatchCreate($infoArr['appKey'], $infoArr['appSecret'], $infoArr['token'], $content);
     if(count($infoArr)>0){
@@ -1043,6 +1060,7 @@ function w2tStockOutMany($orders){
                 BaseQuantity: '.$item->goods_count.',
                 Price: '.$price.',
                 Amount: '.$amount.',
+                DetailMemo: "'.$w_order->cs_remark.'",
                 origTaxSalePrice: '.$item->sell_price.',
                 IsPresent: '.($item->gift_type?'true':'false').',
                 DynamicPropertyKeys: ["pubuserdefnvc1", "pubuserdefnvc2", "pubuserdefnvc3"],

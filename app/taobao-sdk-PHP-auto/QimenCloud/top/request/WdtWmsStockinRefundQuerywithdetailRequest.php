@@ -107,7 +107,7 @@ class WdtWmsStockinRefundQuerywithdetailRequest
 
 	public function getApiMethodName()
 	{
-		return "3ldsmu02o9.wdt.wms.stockin.refund.querywithdetail";
+		return "wdt.wms.stockin.refund.querywithdetail";
 	}
 	
 	public function getApiParas()

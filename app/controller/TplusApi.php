@@ -26,8 +26,8 @@ class TplusApi extends BaseController
         $res = getTokenByPermanentCode(env('TPLUS.appKey'), env('TPLUS.appSecret'), getOrgAccessTokenLocal(), get_user_auth_permanent_code());
         // $res = getAppAccessToken('111', '111', '111');
         $appAccessToken = getAppAccessTokenLocal();
-        dump($appAccessToken);
-        dump(cache('tempAuthCode'));
+        // dump($appAccessToken);
+        // dump(cache('tempAuthCode'));
         // return $res['code'];
         $jsonRes = json_decode($res, false);
         $access_token = $jsonRes->result->access_token;

@@ -23,16 +23,18 @@ class TplusApi3 extends BaseController
         echo(env('TPLUS3.appSecret')."\n");
         // echo(getPermanentAuthCodeLocal()."\n");
         // echo(getAppAccessTokenLocal());
-        $res = getTokenByPermanentCode(env('TPLUS3.appKey'), env('TPLUS3.appSecret'), self::getOrgAccessTokenLocal(), self::get_user_auth_permanent_code());
+        // $res = getTokenByPermanentCode(env('TPLUS3.appKey'), env('TPLUS3.appSecret'), self::getOrgAccessTokenLocal(), self::get_user_auth_permanent_code());
         // $res = getAppAccessToken('111', '111', '111');
         
         // dump($res);
-        $jsonRes = json_decode($res, false);
-        $access_token = $jsonRes->result->access_token;
+        // $jsonRes = json_decode($res, false);
+        // $access_token = $jsonRes->result->access_token;
+        
 
         // $inv = searchInv(env('TPLUS3.appKey'), env('TPLUS3.appSecret'), $access_token, 'C2100064');
       
-        return $access_token;
+        // return $access_token;
+        return self::getOpenToken();
        
     }
 
@@ -141,6 +143,7 @@ class TplusApi3 extends BaseController
       $res = getTokenByPermanentCode(env('TPLUS3.appKey'), env('TPLUS3.appSecret'), self::getOrgAccessTokenLocal(), self::get_user_auth_permanent_code());
     //   dump($res);
       $jsonRes = json_decode($res, false);
+    //   dump($jsonRes);
       $access_token = $jsonRes->result->access_token;
 
       return $access_token;
