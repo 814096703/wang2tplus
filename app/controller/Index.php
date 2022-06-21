@@ -720,8 +720,7 @@ function w2tStockIn($w_order){
             },
             "Unit":{Name:"'.$item->unit_name.'"},
             "Quantity": '.$item->num.',
-            "taxPrice": '.$item->tax_price.',
-            "taxAmount": '.$item->tax_amount.',
+            
             "Price": '.$item->tax_price/1.13.',
             "Amount": '.$item->tax_amount/1.13.',
             "TaxRate": 0.13
@@ -747,6 +746,138 @@ function w2tStockIn($w_order){
             VoucherDate: "'.date('Y-m-d',$w_order->created_time/1000).'",
             BusiType: {
                 Code: "01"
+            },
+            Warehouse: {
+                Code: "'.$w_order->warehouse_no.'"
+            },
+            Memo: "'.$w_order->remark.'",
+            RDRecordDetails: [
+                '.$details.'
+            ]
+        }
+    }';
+
+    // echo($content);
+    $infoArr = getInfoArr($w_order->warehouse_no);
+    if(count($infoArr)>0){
+        $res = purchaseReceiveCreate($infoArr['appKey'], $infoArr['appSecret'], $infoArr['token'], $content);
+    }else{
+        $res = `{"code":"EXERROR0001","message":"目标仓库没有可执行账套","data":{"Code":"EXERROR0001","StatusCode":400,"islogerror":"1"}}`;
+    }
+    
+    
+    return $res;
+}
+
+// 采购退货出库单
+function purchaseReturn($st, $et, $warehouse){
+    $pageSize = 50;
+    $msg = '';
+    
+    // 查询旺店通单据
+    $wangData = wangPurchaseReturnQueryWithDetail($st, $et, $pageSize, 0, $warehouse['wh_code']);
+    // dump($wangData);
+
+    if($wangData->status==0){
+        $orders = [];
+        $total = $wangData->data->total_count;
+        $msg=$msg.'采购退货出库单 '.$warehouse['wh_name'].' '.date("Y-m-d",strtotime($st)).' 查询到'.$total."条数据".PHP_EOL;
+        if($total>0){
+            $pages = intval($total / $pageSize);
+            if($total % $pageSize != 0){
+                $pages += 1;
+            }
+            for($page=0; $page<$pages; $page++){
+                $pageData = stockinPurchase($st, $et, $pageSize, $page, $warehouse['wh_code']);
+                $orders = array_merge($orders, $pageData->data->order);
+            }
+            foreach($orders as $order){
+                
+                // 查询单据是否已转到t+
+                $row = Db::table('fa_order')->where('order_num',$order->order_no)->find();
+                
+                if(!$row){
+                    // 单据录入到t+
+                    $newRow = [
+                        'warehouse'=>$warehouse['wh_name'],
+                        'order_num'=>$order->order_no, 
+                        'order_detail'=>json_encode($order), 
+                        'order_time'=>$order->modified/1000,
+                        'order_type'=>'采购入库单',
+                        'status'=>'未同步',
+                        'result'=>'未同步',
+                    ];
+                    
+                    $res = w2tStockIn($order);
+                    
+                    if($res=='null'){
+                        // 单据信息录入到数据库
+                        $newRow['status'] = '已同步';
+                        $newRow['result'] = '已同步';
+                    }else{
+                        $newRow['result'] = translateErrMsg(json_decode($res)->message);
+                        $msg.="录入失败：".$order->order_no.",".$res.PHP_EOL;
+                    }
+                    Db::table('fa_order')->insert($newRow);
+                }else if($row['status']=='未同步'){
+                    $res = w2tStockIn($order);
+                    if($res=='null'){
+                        // 单据信息录入到数据库
+                        $row['status'] = '已同步';
+                        $row['result'] = '已同步';
+                    }else{
+                        $row['result'] = translateErrMsg(json_decode($res)->message);
+                        $msg.="录入失败：".$order->order_no.",".$res.PHP_EOL;
+                        
+                    }
+                    Db::table('fa_order')->update($row);
+                }
+                
+               
+            }
+        }
+    }else{
+        $msg .= '旺店通接口错误';
+    }
+
+    return $msg;
+}
+
+function w2tPurchaseReturn($w_order){
+    $details = '';
+    foreach($w_order->details_list as $key=>$item){
+        // $item->unit_name=($item->unit_name=='无' ? "件" : $item->unit_name);
+        $detail = '{
+            "Inventory": {
+                Code: "'.$item->spec_no.'"
+            },
+            "Unit":{Name:"'.$item->unit_name.'"},
+            "Quantity": -'.$item->num.',
+            "Price": -'.$item->tax_price/1.13.',
+            "Amount": -'.$item->tax_amount/1.13.',
+            "TaxRate": 0.13
+        }';
+        if(count($w_order->details_list)==($key+1)){
+            $details.=$detail;
+        }else{
+            $details.=$detail.',';
+        }
+    }
+    
+    // 转化为t+数据格式
+    $content = '{
+        dto: {
+            IsModifiedCode:"true",
+            Code: "'.$w_order->order_no.'",
+            VoucherType: {
+                Code: "ST1001"
+            },
+            Partner: {
+                Code: "'.$w_order->provider_no.'"
+            },
+            VoucherDate: "'.date('Y-m-d',$w_order->created_time/1000).'",
+            BusiType: {
+                Code: "02"
             },
             Warehouse: {
                 Code: "'.$w_order->warehouse_no.'"
@@ -962,6 +1093,7 @@ function stockOut($st, $et, $warehouse){
     
 }
 
+// 销售出库wdt到t+ 单张录入
 function w2tStockOut($w_order){
     $details = '';
     foreach($w_order->details_list as $key=>$item){
@@ -1042,144 +1174,7 @@ function w2tStockOut($w_order){
 
     return $res;
 }
-
-// 退换货入库单
-function stockOutRefund($st, $et, $warehouse){
-    $pageSize = 50;
-    $msg = '';
-    
-    // 查询旺店通单据
-    $wangData = stockinRefund($st, $et, $pageSize, 0, $warehouse['wh_code']);
-    // dump($wangData);
-
-    if($wangData->status==0){
-        $orders = [];
-        $total = $wangData->data->total_count;
-        $msg=$msg.'采购入库 '.$warehouse['wh_name'].' '.date("Y-m-d",strtotime($st)).' 查询到'.$total."条数据".PHP_EOL;
-        if($total>0){
-            $pages = intval($total / $pageSize);
-            if($total % $pageSize != 0){
-                $pages += 1;
-            }
-            for($page=0; $page<$pages; $page++){
-                $pageData = stockinPurchase($st, $et, $pageSize, $page, $warehouse['wh_code']);
-                $orders = array_merge($orders, $pageData->data->order);
-            }
-            foreach($orders as $order){
-                
-                // 查询单据是否已转到t+
-                $row = Db::table('fa_order')->where('order_num',$order->order_no)->find();
-                
-                if(!$row){
-                    // 单据录入到t+
-                    $newRow = [
-                        'warehouse'=>$warehouse['wh_name'],
-                        'order_num'=>$order->order_no, 
-                        'order_detail'=>json_encode($order), 
-                        'order_time'=>$order->modified/1000,
-                        'order_type'=>'销售出库',
-                        'status'=>'未同步',
-                        'result'=>'未同步',
-                    ];
-                    
-                    $res = w2tStockIn($order);
-                    
-                    if($res=='null'){
-                        // 单据信息录入到数据库
-                        $newRow['status'] = '已同步';
-                        $newRow['result'] = '已同步';
-                    }else{
-                        $newRow['result'] = translateErrMsg(json_decode($res)->message);
-                        $msg.="录入失败：".$order->order_no.",".$res.PHP_EOL;
-                    }
-                    Db::table('fa_order')->insert($newRow);
-                }else if($row['status']=='未同步'){
-                    $res = w2tStockIn($order);
-                    if($res=='null'){
-                        // 单据信息录入到数据库
-                        $row['status'] = '已同步';
-                        $row['result'] = '已同步';
-                    }else{
-                        $row['result'] = translateErrMsg(json_decode($res)->message);
-                        $msg.="录入失败：".$order->order_no.",".$res.PHP_EOL;
-                        
-                    }
-                    Db::table('fa_order')->update($row);
-                }
-                
-               
-            }
-        }
-    }else{
-        $msg .= '旺店通接口错误';
-    }
-
-    return $msg;
-}
-
-function w2tStockOutRefund($w_order){
-    $details = '';
-    foreach($w_order->details_list as $key=>$item){
-        // $item->unit_name=($item->unit_name=='无' ? "件" : $item->unit_name);
-        $detail = '{
-            "Inventory": {
-                Code: "'.$item->spec_no.'"
-            },
-            "BusiType":{
-                Code: "02"
-            },
-            "Unit":{Name:"'.$item->unit_name.'"},
-            "Quantity": '.$item->num.',
-            "taxPrice": '.$item->tax_price.',
-            "taxAmount": '.$item->tax_amount.',
-            "Price": '.$item->tax_price/1.13.',
-            "Amount": '.$item->tax_amount/1.13.',
-            "TaxRate": 0.13
-        }';
-        if(count($w_order->details_list)==($key+1)){
-            $details.=$detail;
-        }else{
-            $details.=$detail.',';
-        }
-    }
-    
-    // 转化为t+数据格式
-    $content = '{
-        dto: {
-            IsModifiedCode:"true",
-            Code: "'.$w_order->order_no.'",
-            VoucherType: {
-                Code: "ST1001"
-            },
-            Partner: {
-                Code: "'.$w_order->provider_no.'"
-            },
-            VoucherDate: "'.date('Y-m-d',$w_order->created_time/1000).'",
-            BusiType: {
-                Code: "01"
-            },
-            Warehouse: {
-                Code: "'.$w_order->warehouse_no.'"
-            },
-            Memo: "'.$w_order->remark.'",
-            RDRecordDetails: [
-                '.$details.'
-            ]
-        }
-    }';
-
-    // echo($content);
-    $infoArr = getInfoArr($w_order->warehouse_no);
-    if(count($infoArr)>0){
-        $res = purchaseReceiveCreate($infoArr['appKey'], $infoArr['appSecret'], $infoArr['token'], $content);
-    }else{
-        $res = `{"code":"EXERROR0001","message":"目标仓库没有可执行账套","data":{"Code":"EXERROR0001","StatusCode":400,"islogerror":"1"}}`;
-    }
-    
-    
-    return $res;
-}
-
+// 销售出库wdt到t+ 合并录入
 function w2tStockOutMany($orders){
     
     $details = '';
@@ -1242,6 +1237,162 @@ function w2tStockOutMany($orders){
     }else{
         $res = '{"code":"EXERROR0001","message":"目标店铺'.$orders[0]->shop_no.'没有可执行账套","data":{"Code":"EXERROR0001","StatusCode":400,"islogerror":"1"}}';
         // echo('res='.$res.'end');
+    }
+
+    return $res;
+}
+
+// 退换货入库单
+function stockOutRefund($st, $et, $warehouse){
+    $pageSize = 50;
+    $msg = '';
+    
+    // 查询旺店通单据
+    $wangData = stockinRefund($st, $et, $pageSize, 0, $warehouse['wh_code']);
+    // dump($wangData);
+
+    if($wangData->status==0){
+        $orders = [];
+        $total = $wangData->data->total_count;
+        $msg=$msg.'退换入库 '.$warehouse['wh_name'].' '.date("Y-m-d",strtotime($st)).' 查询到'.$total."条数据".PHP_EOL;
+        if($total>0){
+            $pages = intval($total / $pageSize);
+            if($total % $pageSize != 0){
+                $pages += 1;
+            }
+            for($page=0; $page<$pages; $page++){
+                $pageData = stockinPurchase($st, $et, $pageSize, $page, $warehouse['wh_code']);
+                $orders = array_merge($orders, $pageData->data->order);
+            }
+            foreach($orders as $order){
+                
+                // 查询单据是否已转到t+
+                $row = Db::table('fa_order')->where('order_num',$order->order_no)->find();
+                
+                if(!$row){
+                    // 单据录入到t+
+                    $newRow = [
+                        'warehouse'=>$warehouse['wh_name'],
+                        'order_num'=>$order->order_no, 
+                        'order_detail'=>json_encode($order), 
+                        'order_time'=>$order->modified/1000,
+                        'order_type'=>'销售出库',
+                        'status'=>'未同步',
+                        'result'=>'未同步',
+                    ];
+                    
+                    $res = w2tStockIn($order);
+                    
+                    if($res=='null'){
+                        // 单据信息录入到数据库
+                        $newRow['status'] = '已同步';
+                        $newRow['result'] = '已同步';
+                    }else{
+                        $newRow['result'] = translateErrMsg(json_decode($res)->message);
+                        $msg.="录入失败：".$order->order_no.",".$res.PHP_EOL;
+                    }
+                    Db::table('fa_order')->insert($newRow);
+                }else if($row['status']=='未同步'){
+                    $res = w2tStockIn($order);
+                    if($res=='null'){
+                        // 单据信息录入到数据库
+                        $row['status'] = '已同步';
+                        $row['result'] = '已同步';
+                    }else{
+                        $row['result'] = translateErrMsg(json_decode($res)->message);
+                        $msg.="录入失败：".$order->order_no.",".$res.PHP_EOL;
+                        
+                    }
+                    Db::table('fa_order')->update($row);
+                }
+                
+               
+            }
+        }
+    }else{
+        $msg .= '旺店通接口错误';
+    }
+
+    return $msg;
+}
+
+// wdt退货入库单做成t+销售出库单的负数
+function w2tStockOutRefund($w_order){
+    $details = '';
+    foreach($w_order->details_list as $key=>$item){
+
+        $price = (floatval($item->cost_price)>=0.01 ? floatval($item->cost_price) : 0);
+        $amount =( floatval($item->total_amount)>=0.01 ? floatval($item->total_amount) : 0);
+        
+        $detail = '{
+            Inventory: {
+                Code: "'.$item->spec_no.'"
+            },
+            BaseQuantity: '.$item->goods_count.',
+            Price: -'.$price.',
+            Amount: -'.$amount.',
+            origTaxSalePrice: '.$item->sell_price.',
+            IsPresent: '.($item->gift_type?'true':'false').',
+            DynamicPropertyKeys: ["pubuserdefnvc1", "pubuserdefnvc2", "pubuserdefnvc3"],
+            DynamicPropertyValues: ["'.$w_order->src_trade_no.'", "'.$w_order->src_order_no.'", "'.$w_order->order_no.'"]
+        }';
+        if(count($w_order->details_list)==($key+1)){
+            $details.=$detail;
+        }else{
+            $details.=$detail.',';
+        }
+    }
+
+    $partner='';
+    $saleman='';
+    // 店铺名包含 '公司' ,客户网名作为客户，有业务员，不合并
+    // 网店，店铺作为客户，合并随意，没有业务员
+    if(strstr($w_order->shop_name, '公司')==false){
+        $partner=$w_order->shop_no;
+        
+    }else{
+        $partner=$w_order->customer_no;
+        $saleman = 'Clerk: {
+            Code: "'.$w_order->salesman_no.'"
+        },';
+    }
+     
+
+    // 转化为t+数据格式
+    $content = '{
+        dto: {
+            IsModifiedCode:"true",
+            Code: "'.$w_order->order_no.'",
+            VoucherType: {
+                Code: "ST1021"
+            },
+            Partner: {
+                Code: "'.$partner.'"
+            },
+            VoucherDate: "'.date('Y-m-d',strtotime($w_order->consign_time)).'",
+            BusiType: {
+                Code: "16"
+            },
+            Warehouse: {
+                Code: "'.$w_order->warehouse_no.'"
+            },
+            '.$saleman.'
+            Memo: "'.$w_order->cs_remark.'",
+            RDRecordDetails: [
+                '.$details.'
+            ]
+        }
+    }';
+
+    // dump($content);
+    $infoArr = getInfoArrByshop($w_order->shop_no);
+    // $res = saleDispatchCreate($infoArr['appKey'], $infoArr['appSecret'], $infoArr['token'], $content);
+    if(count($infoArr)>0){
+        $res = saleDispatchCreate($infoArr['appKey'], $infoArr['appSecret'], $infoArr['token'], $content);
+       
+    }else{
+        $res = '{"code":"EXERROR0001","message":"目标店铺'.$w_order->shop_no.'没有可执行账套","data":{"Code":"EXERROR0001","StatusCode":400,"islogerror":"1"}}';
+        echo('res='.$res.'end');
     }
 
     return $res;

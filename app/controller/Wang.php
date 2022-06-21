@@ -261,3 +261,20 @@ function wangQueryStockPdOutDetail($st, $et, $pageSize, $pageNo, $warehouse){
     $response = $client->pageCall("wms.StockPd.queryStockPdOutDetail",$pager, $pars);
     return $response;
 }
+
+// 采购退货出库单
+function wangPurchaseReturnQueryWithDetail($st, $et, $pageSize, $pageNo, $warehouse){
+    $client = new \WdtErpClient(env('WANG.service_url'), env('WANG.sid'), env('WANG.appkey'), env('WANG.appsecret'));//直接输入ip参数
+    
+    $pars = array
+    (    
+        'start_time' => $st,
+        'end_time' => $et,
+        'warehouse_no'=>$warehouse,
+        'status'=>'110'
+    );
+    
+    $pager = new \Pager($pageSize, $pageNo, true);
+    $response = $client->pageCall("wms.stockout.PurchaseReturn.queryWithDetail",$pager, $pars);
+    return $response;
+}
