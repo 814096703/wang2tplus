@@ -1321,8 +1321,7 @@ function w2tStockOutRefund($w_order){
     $details = '';
     foreach($w_order->details_list as $key=>$item){
 
-        $price = (floatval($item->cost_price)>=0.01 ? floatval($item->cost_price) : 0);
-        $amount =( floatval($item->total_amount)>=0.01 ? floatval($item->total_amount) : 0);
+        $price = $item->refund_order_detail_list[0]->price;
         
         $detail = '{
             Inventory: {
@@ -1330,11 +1329,8 @@ function w2tStockOutRefund($w_order){
             },
             BaseQuantity: '.$item->goods_count.',
             Price: -'.$price.',
-            Amount: -'.$amount.',
-            origTaxSalePrice: '.$item->sell_price.',
-            IsPresent: '.($item->gift_type?'true':'false').',
             DynamicPropertyKeys: ["pubuserdefnvc1", "pubuserdefnvc2", "pubuserdefnvc3"],
-            DynamicPropertyValues: ["'.$w_order->src_trade_no.'", "'.$w_order->src_order_no.'", "'.$w_order->order_no.'"]
+            DynamicPropertyValues: ["'.$w_order->tid_list.'", "'.$w_order->refund_no.'", "'.$w_order->order_no.'"]
         }';
         if(count($w_order->details_list)==($key+1)){
             $details.=$detail;
@@ -1369,7 +1365,7 @@ function w2tStockOutRefund($w_order){
             Partner: {
                 Code: "'.$partner.'"
             },
-            VoucherDate: "'.date('Y-m-d',strtotime($w_order->consign_time)).'",
+            VoucherDate: "'.date('Y-m-d',strtotime($w_order->modified)).'",
             BusiType: {
                 Code: "16"
             },
@@ -1377,7 +1373,7 @@ function w2tStockOutRefund($w_order){
                 Code: "'.$w_order->warehouse_no.'"
             },
             '.$saleman.'
-            Memo: "'.$w_order->cs_remark.'",
+            Memo: "'.$w_order->remark.'",
             RDRecordDetails: [
                 '.$details.'
             ]

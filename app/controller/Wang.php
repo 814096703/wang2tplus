@@ -19,10 +19,12 @@ class Wang extends BaseController
 
     public function test(){
         // $res = qmTest('2022-06-07 09:00:00', '2022-06-07 10:00:00', 100, 1, '01');
-        $res = stockinRefund('2022-06-01 09:00:00', '2022-06-07 10:00:00', 100, 1, '01');
+        $res = stockinRefund('2022-06-01 09:00:00', '2022-06-02 10:00:00', 100, 1, '01');
+        // $res2 = wangPurchaseReturnQueryWithDetail('2022-06-01 00:00:00', '2022-06-06 00:00:00', 10, 0, "01");
         // $res = stockinPurchase('2022-02-01', '2022-02-23');
         // $res = wangStockinTransfer('2022-06-01 00:00:00', '2022-06-06 00:00:00', 10, 0);
         dump($res);
+        // dump($res2);
     }
 }
 
