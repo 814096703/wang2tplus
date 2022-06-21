@@ -37,104 +37,109 @@ class Index extends BaseController
         //     echo $warehouse['wh_code'].'\n';
         // }
         $res = '{
-            "actual_refund_amount": "103.2100",
-            "check_time": "1654132596000",
-            "created_time": "1654132596000",
-            "customer_no": "KH202205180044",
-            "details_list": [{
-                    "batch_no": "",
-                    "brand_name": "咸亨",
-                    "brand_no": "21",
-                    "checked_cost_price": "0.0000",
-                    "defect": false,
-                    "expire_date": "",
-                    "goods_name": "500ml*6咸亨清醇3年",
-                    "goods_no": "XIANHENG09",
-                    "goods_unit": "无",
-                    "logistics_id": 0,
-                    "logistics_name": "无",
-                    "logistics_no": "DPK300520635988",
-                    "num": "2.0000",
-                    "position_no": "销退暂存",
-                    "prop2": "",
-                    "rec_id": 35513,
-                    "refund_detail_id": "44225",
-                    "refund_order_detail_list": [{
-                        "price": "0.0000",
-                        "refund_order_id": 44225,
-                        "spec_no": "咸亨09",
-                        "stockin_order_detail_id": 35513
-                    }],
-                    "remark": "",
-                    "right_num": "2.0000",
-                    "spec_code": "",
-                    "spec_name": "500ml*6咸亨清醇3年",
-                    "spec_no": "咸亨09",
-                    "src_order_id": 39238,
-                    "stockin_id": 16245,
-                    "total_cost": "0.0000",
-                    "warehouse_id": 1
+            "actual_refund_amount":"103.2100",
+            "check_time":"1654132596000",
+            "created_time":"1654132596000",
+            "customer_no":"KH202205180044",
+            "details_list":[
+                {
+                    "batch_no":"",
+                    "brand_name":"咸亨",
+                    "brand_no":"21",
+                    "checked_cost_price":"0.0000",
+                    "defect":false,
+                    "expire_date":"",
+                    "goods_name":"500ml*6咸亨清醇3年",
+                    "goods_no":"XIANHENG09",
+                    "goods_unit":"无",
+                    "logistics_id":0,
+                    "logistics_name":"无",
+                    "logistics_no":"DPK300520635988",
+                    "num":"2.0000",
+                    "position_no":"销退暂存",
+                    "prop2":"",
+                    "rec_id":35513,
+                    "refund_detail_id":"44225",
+                    "refund_order_detail_list":[
+                        {
+                            "price":"0.0000",
+                            "refund_order_id":44225,
+                            "spec_no":"咸亨09",
+                            "stockin_order_detail_id":35513
+                        }
+                    ],
+                    "remark":"",
+                    "right_num":"2.0000",
+                    "spec_code":"",
+                    "spec_name":"500ml*6咸亨清醇3年",
+                    "spec_no":"咸亨09",
+                    "src_order_id":39238,
+                    "stockin_id":16245,
+                    "total_cost":"0.0000",
+                    "warehouse_id":1
                 },
                 {
-                    "batch_no": "",
-                    "brand_name": "咸亨",
-                    "brand_no": "21",
-                    "checked_cost_price": "8.0558",
-                    "defect": false,
-                    "expire_date": "",
-                    "goods_name": "500ml*12咸亨雕皇黑标扁瓶",
-                    "goods_no": "XIANHENG18",
-                    "goods_unit": "无",
-                    "logistics_id": 0,
-                    "logistics_name": "无",
-                    "logistics_no": "DPK300520635988",
-                    "num": "10.0000",
-                    "position_no": "销退暂存",
-                    "prop2": "",
-                    "rec_id": 35512,
-                    "refund_detail_id": "44224",
-                    "refund_order_detail_list": [{
-                        "price": "10.3210",
-                        "refund_order_id": 44224,
-                        "spec_no": "咸亨18",
-                        "stockin_order_detail_id": 35512
-                    }],
-                    "remark": "",
-                    "right_num": "10.0000",
-                    "spec_code": "",
-                    "spec_name": "500ml*12咸亨雕皇黑标扁瓶",
-                    "spec_no": "咸亨18",
-                    "src_order_id": 39238,
-                    "stockin_id": 16245,
-                    "total_cost": "80.5710",
-                    "warehouse_id": 1
+                    "batch_no":"",
+                    "brand_name":"咸亨",
+                    "brand_no":"21",
+                    "checked_cost_price":"8.0558",
+                    "defect":false,
+                    "expire_date":"",
+                    "goods_name":"500ml*12咸亨雕皇黑标扁瓶",
+                    "goods_no":"XIANHENG18",
+                    "goods_unit":"无",
+                    "logistics_id":0,
+                    "logistics_name":"无",
+                    "logistics_no":"DPK300520635988",
+                    "num":"10.0000",
+                    "position_no":"销退暂存",
+                    "prop2":"",
+                    "rec_id":35512,
+                    "refund_detail_id":"44224",
+                    "refund_order_detail_list":[
+                        {
+                            "price":"10.3210",
+                            "refund_order_id":44224,
+                            "spec_no":"咸亨18",
+                            "stockin_order_detail_id":35512
+                        }
+                    ],
+                    "remark":"",
+                    "right_num":"10.0000",
+                    "spec_code":"",
+                    "spec_name":"500ml*12咸亨雕皇黑标扁瓶",
+                    "spec_no":"咸亨18",
+                    "src_order_id":39238,
+                    "stockin_id":16245,
+                    "total_cost":"80.5710",
+                    "warehouse_id":1
                 }
             ],
-            "fenxiao_nick": "",
-            "flag_name": "",
-            "goods_count": "12.0000",
-            "logistics_id": 0,
-            "logistics_name": "无",
-            "logistics_no": "DPK300520635988",
-            "modified": "2022-06-02 09:16:37",
-            "operator_name": "李彩",
-            "order_no": "RK2206020004",
-            "refund_no": "TK2206020021",
-            "remark": "----DPK300520635988",
-            "shop_id": 59,
-            "shop_name": "习水村-天猫咸亨习水村专卖店",
-            "shop_no": "A0011",
-            "shop_platform_id": 1,
-            "shop_remark": "",
-            "src_order_id": 39238,
-            "status": 80,
-            "stockin_id": 16245,
-            "tid_list": "1579146672348038681",
-            "total_price": "80.5710",
-            "trade_no_list": "JY202206010180",
-            "warehouse_id": 1,
-            "warehouse_name": "萧山仓-杭州习水村",
-            "warehouse_no": "01"
+            "fenxiao_nick":"",
+            "flag_name":"",
+            "goods_count":"12.0000",
+            "logistics_id":0,
+            "logistics_name":"无",
+            "logistics_no":"DPK300520635988",
+            "modified":"2022-06-02 09:16:37",
+            "operator_name":"李彩",
+            "order_no":"RK2206020004",
+            "refund_no":"TK2206020021",
+            "remark":"----DPK300520635988",
+            "shop_id":59,
+            "shop_name":"习水村-天猫咸亨习水村专卖店",
+            "shop_no":"A0011",
+            "shop_platform_id":1,
+            "shop_remark":"",
+            "src_order_id":39238,
+            "status":80,
+            "stockin_id":16245,
+            "tid_list":"1579146672348038681",
+            "total_price":"80.5710",
+            "trade_no_list":"JY202206010180",
+            "warehouse_id":1,
+            "warehouse_name":"萧山仓-杭州习水村",
+            "warehouse_no":"01"
         }';
         $resJson = json_decode($res);
         $infoArr = w2tStockOutRefund($resJson);
@@ -747,10 +752,11 @@ function w2tPurchaseReturn($w_order){
             "Inventory": {
                 Code: "'.$item->spec_no.'"
             },
-            "Unit":{Name:"'.$item->unit_name.'"},
-            "Quantity": -'.$item->num.',
-            "Price": -'.$item->tax_price/1.13.',
-            "Amount": -'.$item->tax_amount/1.13.',
+            "Unit":{Name:"'.$item->goods_unit.'"},
+            "Quantity": '.-$item->goods_count.',
+            "Price": '.$item->cost_price/1.13.',
+            "DynamicPropertyKeys": ["pubuserdefnvc2"],
+            "DynamicPropertyValues": ["'.$w_order->src_order_no.'"],
             "TaxRate": 0.13
         }';
         if(count($w_order->details_list)==($key+1)){
@@ -771,7 +777,7 @@ function w2tPurchaseReturn($w_order){
             Partner: {
                 Code: "'.$w_order->provider_no.'"
             },
-            VoucherDate: "'.date('Y-m-d',$w_order->created_time/1000).'",
+            VoucherDate: "'.date('Y-m-d',$w_order->create_time/1000).'",
             BusiType: {
                 Code: "02"
             },
@@ -1138,7 +1144,7 @@ function w2tStockOutMany($orders){
     return $res;
 }
 
-// 退换货入库单
+// 销售退换货入库单
 function stockOutRefund($st, $et, $warehouse){
     $pageSize = 50;
     $msg = '';
@@ -1214,19 +1220,25 @@ function stockOutRefund($st, $et, $warehouse){
 
 // wdt退货入库单做成t+销售出库单的负数
 function w2tStockOutRefund($w_order){
+    $refundData = refundSearch($w_order->refund_no, 10, 1);
+    $refundOrder = $refundData->data->order[0];
+
     $details = '';
     foreach($w_order->details_list as $key=>$item){
 
         $price = $item->refund_order_detail_list[0]->price;
+        // echo($price);
+        // echo $w_order->trade_no_list;
+        // echo $w_order->refund_no;
         
         $detail = '{
             Inventory: {
                 Code: "'.$item->spec_no.'"
             },
-            BaseQuantity: '.$item->goods_count.',
-            Price: -'.$price.',
+            BaseQuantity: '.-$item->num.',
+            origTaxSalePrice: '.$price.',
             DynamicPropertyKeys: ["pubuserdefnvc1", "pubuserdefnvc2", "pubuserdefnvc3"],
-            DynamicPropertyValues: ["'.$w_order->tid_list.'", "'.$w_order->refund_no.'", "'.$w_order->order_no.'"]
+            DynamicPropertyValues: ["'.$w_order->trade_no_list.'", "'.$w_order->refund_no.'", "'.$w_order->order_no.'"]
         }';
         if(count($w_order->details_list)==($key+1)){
             $details.=$detail;
@@ -1269,7 +1281,7 @@ function w2tStockOutRefund($w_order){
                 Code: "'.$w_order->warehouse_no.'"
             },
             '.$saleman.'
-            Memo: "'.$w_order->remark.'",
+            Memo: "备注：'.$w_order->remark.'；退还备注：'.$refundOrder->remark.'",
             RDRecordDetails: [
                 '.$details.'
             ]

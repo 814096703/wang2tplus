@@ -107,7 +107,7 @@ class WdtAftersalesRefundRefundSearchRequest
 
 	public function getApiMethodName()
 	{
-		return "3ldsmu02o9.wdt.aftersales.refund.refund.search";
+		return "wdt.aftersales.refund.refund.search";
 	}
 	
 	public function getApiParas()

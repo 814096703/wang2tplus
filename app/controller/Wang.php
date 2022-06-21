@@ -6,6 +6,7 @@ include_once(__DIR__."/../api/wdtsdk.php");
 include_once(__DIR__."/../taobao-sdk-PHP-auto/TopSdk.php");
 include_once(__DIR__."/../taobao-sdk-PHP-auto/QimenCloud/Top/request/WdtWmsStockoutSalesQuerywithdetailRequest.php");
 include_once(__DIR__."/../taobao-sdk-PHP-auto/QimenCloud/top/request/WdtWmsStockinRefundQuerywithdetailRequest.php");
+include_once(__DIR__."/../taobao-sdk-PHP-auto/QimenCloud/top/request/WdtAftersalesRefundRefundSearchRequest.php");
 include_once(__DIR__."/../taobao-sdk-PHP-auto/WdtUtils.php");
 header('Content-type:text/html;charset=utf8');
 date_default_timezone_set('PRC');
@@ -19,12 +20,15 @@ class Wang extends BaseController
 
     public function test(){
         // $res = qmTest('2022-06-07 09:00:00', '2022-06-07 10:00:00', 100, 1, '01');
-        $res = stockinRefund('2022-06-01 09:00:00', '2022-06-02 10:00:00', 100, 1, '01');
-        // $res2 = wangPurchaseReturnQueryWithDetail('2022-06-01 00:00:00', '2022-06-06 00:00:00', 10, 0, "01");
+        // $res = stockinRefund('2022-06-01 09:00:00', '2022-06-02 10:00:00', 100, 1, '01');
+        // $res2 = wangPurchaseReturnQueryWithDetail('2022-06-01 00:00:00', '2022-06-16 00:00:00', 10, 0, "01");
         // $res = stockinPurchase('2022-02-01', '2022-02-23');
         // $res = wangStockinTransfer('2022-06-01 00:00:00', '2022-06-06 00:00:00', 10, 0);
-        dump($res);
+        // dump($res);
+        // echo json_encode($res2->data->order[0]);
         // dump($res2);
+        $res = refundSearch('TK2206020021', 10, 1);
+        dump($res);
     }
 }
 
@@ -270,8 +274,8 @@ function wangPurchaseReturnQueryWithDetail($st, $et, $pageSize, $pageNo, $wareho
     
     $pars = array
     (    
-        'start_time' => $st,
-        'end_time' => $et,
+        'out_start_time' => $st,
+        'out_end_time' => $et,
         'warehouse_no'=>$warehouse,
         'status'=>'110'
     );
@@ -279,4 +283,56 @@ function wangPurchaseReturnQueryWithDetail($st, $et, $pageSize, $pageNo, $wareho
     $pager = new \Pager($pageSize, $pageNo, true);
     $response = $client->pageCall("wms.stockout.PurchaseReturn.queryWithDetail",$pager, $pars);
     return $response;
+}
+
+// 退换单查询（奇门）
+function refundSearch($refund_no, $pageSize, $pageNo){
+
+    $wdtAppKey = env('WANG.appkey');
+    $wdtAppSecret = env('WANG.appsecret');
+    $wdtSecretArr = explode(':', $wdtAppSecret);
+    $wdtSalt = $wdtSecretArr[1];
+    $wdtSecret = $wdtSecretArr[0];
+    $client = new \QimenCloudClient(env('WANG.qmAppkey'), '4bafe14675df13f72da15a96be473971');
+
+
+    // $client->gatewayUrl = 'http://3ldsmu02o9.api.taobao.com/router/qmtest';//测试
+    $client->gatewayUrl = 'http://3ldsmu02o9.api.taobao.com/router/qm';// 正式环境
+    $client->targetAppkey = '21363512';
+    $client->format = 'json';
+
+    $request = new \WdtAftersalesRefundRefundSearchRequest();
+
+    $timestamp = date("Y-m-d H:i:s");
+    // 'stockout_no' => 'CKDH20220209105',
+    $params = array(
+        "refund_no"=>$refund_no
+    );
+    
+    $pager = array(
+        'page_size' => $pageSize,
+        'page_no' => $pageNo
+    );
+    $request->setParams(json_encode($params));
+    $request->setPager(json_encode($pager));
+    $request->setDatetime($timestamp);
+    // dump($timestamp);
+    $request->setWdtAppkey($wdtAppKey);
+    $request->setWdtSalt($wdtSalt);
+    $request->putOtherTextParam("wdt3_customer_id", "xishuicun3");
+
+    $wdtUtils = new \WdtUtils();
+    $wdtSign = $wdtUtils->getQimenCustomWdtSign($request, $wdtSecret);
+    // dump($wdtSign);
+    $request->setWdtSign($wdtSign);
+
+    try {
+        $response = $client->execute($request);
+        // echo "\r\nresponse: " . json_encode($response) . "\n";
+        // dump($response);
+        return $response;
+    } catch (\Exception $e) {
+        echo "\r\nexception:" . $e->getMessage();
+        return (object)['status'=>1];
+    }
 }
