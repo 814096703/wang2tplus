@@ -24,10 +24,10 @@ class Index extends BaseController
         // $range =  stockIn('2022-06-01 00:00:00', '2022-06-01 23:59:59', '12');
         // $range = dealStockInTransfer('2022-06-01 00:00:00', '2022-06-06 00:00:00');
         // $range = dealStockOutTransfer('2022-06-01 00:00:00', '2022-06-04 00:00:00', $warehouse);
-        // $warehouse = Db::table('fa_warehouse')->where('wh_code', '01')->find();
-        // $range =  stockOut('2022-06-01 00:00:00', '2022-06-02 00:00:00', $warehouse);
+        $warehouse = Db::table('fa_warehouse')->where('wh_code', '01')->find();
+        $range =  stockOutRefund('2022-06-01 00:00:00', '2022-06-02 00:00:00', $warehouse);
         
-        // dump($range);
+        dump($range);
         
         // echo date("Y-m-d H:i:s", strtotime('2022-02-11'));
         // addWh();
@@ -36,114 +36,114 @@ class Index extends BaseController
         // foreach($warehouseArr as $warehouse){
         //     echo $warehouse['wh_code'].'\n';
         // }
-        $res = '{
-            "actual_refund_amount":"103.2100",
-            "check_time":"1654132596000",
-            "created_time":"1654132596000",
-            "customer_no":"KH202205180044",
-            "details_list":[
-                {
-                    "batch_no":"",
-                    "brand_name":"咸亨",
-                    "brand_no":"21",
-                    "checked_cost_price":"0.0000",
-                    "defect":false,
-                    "expire_date":"",
-                    "goods_name":"500ml*6咸亨清醇3年",
-                    "goods_no":"XIANHENG09",
-                    "goods_unit":"无",
-                    "logistics_id":0,
-                    "logistics_name":"无",
-                    "logistics_no":"DPK300520635988",
-                    "num":"2.0000",
-                    "position_no":"销退暂存",
-                    "prop2":"",
-                    "rec_id":35513,
-                    "refund_detail_id":"44225",
-                    "refund_order_detail_list":[
-                        {
-                            "price":"0.0000",
-                            "refund_order_id":44225,
-                            "spec_no":"咸亨09",
-                            "stockin_order_detail_id":35513
-                        }
-                    ],
-                    "remark":"",
-                    "right_num":"2.0000",
-                    "spec_code":"",
-                    "spec_name":"500ml*6咸亨清醇3年",
-                    "spec_no":"咸亨09",
-                    "src_order_id":39238,
-                    "stockin_id":16245,
-                    "total_cost":"0.0000",
-                    "warehouse_id":1
-                },
-                {
-                    "batch_no":"",
-                    "brand_name":"咸亨",
-                    "brand_no":"21",
-                    "checked_cost_price":"8.0558",
-                    "defect":false,
-                    "expire_date":"",
-                    "goods_name":"500ml*12咸亨雕皇黑标扁瓶",
-                    "goods_no":"XIANHENG18",
-                    "goods_unit":"无",
-                    "logistics_id":0,
-                    "logistics_name":"无",
-                    "logistics_no":"DPK300520635988",
-                    "num":"10.0000",
-                    "position_no":"销退暂存",
-                    "prop2":"",
-                    "rec_id":35512,
-                    "refund_detail_id":"44224",
-                    "refund_order_detail_list":[
-                        {
-                            "price":"10.3210",
-                            "refund_order_id":44224,
-                            "spec_no":"咸亨18",
-                            "stockin_order_detail_id":35512
-                        }
-                    ],
-                    "remark":"",
-                    "right_num":"10.0000",
-                    "spec_code":"",
-                    "spec_name":"500ml*12咸亨雕皇黑标扁瓶",
-                    "spec_no":"咸亨18",
-                    "src_order_id":39238,
-                    "stockin_id":16245,
-                    "total_cost":"80.5710",
-                    "warehouse_id":1
-                }
-            ],
-            "fenxiao_nick":"",
-            "flag_name":"",
-            "goods_count":"12.0000",
-            "logistics_id":0,
-            "logistics_name":"无",
-            "logistics_no":"DPK300520635988",
-            "modified":"2022-06-02 09:16:37",
-            "operator_name":"李彩",
-            "order_no":"RK2206020004",
-            "refund_no":"TK2206020021",
-            "remark":"----DPK300520635988",
-            "shop_id":59,
-            "shop_name":"习水村-天猫咸亨习水村专卖店",
-            "shop_no":"A0011",
-            "shop_platform_id":1,
-            "shop_remark":"",
-            "src_order_id":39238,
-            "status":80,
-            "stockin_id":16245,
-            "tid_list":"1579146672348038681",
-            "total_price":"80.5710",
-            "trade_no_list":"JY202206010180",
-            "warehouse_id":1,
-            "warehouse_name":"萧山仓-杭州习水村",
-            "warehouse_no":"01"
-        }';
-        $resJson = json_decode($res);
-        $infoArr = w2tStockOutRefund($resJson);
-        dump($infoArr);
+        // $res = '{
+        //     "actual_refund_amount":"103.2100",
+        //     "check_time":"1654132596000",
+        //     "created_time":"1654132596000",
+        //     "customer_no":"KH202205180044",
+        //     "details_list":[
+        //         {
+        //             "batch_no":"",
+        //             "brand_name":"咸亨",
+        //             "brand_no":"21",
+        //             "checked_cost_price":"0.0000",
+        //             "defect":false,
+        //             "expire_date":"",
+        //             "goods_name":"500ml*6咸亨清醇3年",
+        //             "goods_no":"XIANHENG09",
+        //             "goods_unit":"无",
+        //             "logistics_id":0,
+        //             "logistics_name":"无",
+        //             "logistics_no":"DPK300520635988",
+        //             "num":"2.0000",
+        //             "position_no":"销退暂存",
+        //             "prop2":"",
+        //             "rec_id":35513,
+        //             "refund_detail_id":"44225",
+        //             "refund_order_detail_list":[
+        //                 {
+        //                     "price":"0.0000",
+        //                     "refund_order_id":44225,
+        //                     "spec_no":"咸亨09",
+        //                     "stockin_order_detail_id":35513
+        //                 }
+        //             ],
+        //             "remark":"",
+        //             "right_num":"2.0000",
+        //             "spec_code":"",
+        //             "spec_name":"500ml*6咸亨清醇3年",
+        //             "spec_no":"咸亨09",
+        //             "src_order_id":39238,
+        //             "stockin_id":16245,
+        //             "total_cost":"0.0000",
+        //             "warehouse_id":1
+        //         },
+        //         {
+        //             "batch_no":"",
+        //             "brand_name":"咸亨",
+        //             "brand_no":"21",
+        //             "checked_cost_price":"8.0558",
+        //             "defect":false,
+        //             "expire_date":"",
+        //             "goods_name":"500ml*12咸亨雕皇黑标扁瓶",
+        //             "goods_no":"XIANHENG18",
+        //             "goods_unit":"无",
+        //             "logistics_id":0,
+        //             "logistics_name":"无",
+        //             "logistics_no":"DPK300520635988",
+        //             "num":"10.0000",
+        //             "position_no":"销退暂存",
+        //             "prop2":"",
+        //             "rec_id":35512,
+        //             "refund_detail_id":"44224",
+        //             "refund_order_detail_list":[
+        //                 {
+        //                     "price":"10.3210",
+        //                     "refund_order_id":44224,
+        //                     "spec_no":"咸亨18",
+        //                     "stockin_order_detail_id":35512
+        //                 }
+        //             ],
+        //             "remark":"",
+        //             "right_num":"10.0000",
+        //             "spec_code":"",
+        //             "spec_name":"500ml*12咸亨雕皇黑标扁瓶",
+        //             "spec_no":"咸亨18",
+        //             "src_order_id":39238,
+        //             "stockin_id":16245,
+        //             "total_cost":"80.5710",
+        //             "warehouse_id":1
+        //         }
+        //     ],
+        //     "fenxiao_nick":"",
+        //     "flag_name":"",
+        //     "goods_count":"12.0000",
+        //     "logistics_id":0,
+        //     "logistics_name":"无",
+        //     "logistics_no":"DPK300520635988",
+        //     "modified":"2022-06-02 09:16:37",
+        //     "operator_name":"李彩",
+        //     "order_no":"RK2206020004",
+        //     "refund_no":"TK2206020021",
+        //     "remark":"----DPK300520635988",
+        //     "shop_id":59,
+        //     "shop_name":"习水村-天猫咸亨习水村专卖店",
+        //     "shop_no":"A0011",
+        //     "shop_platform_id":1,
+        //     "shop_remark":"",
+        //     "src_order_id":39238,
+        //     "status":80,
+        //     "stockin_id":16245,
+        //     "tid_list":"1579146672348038681",
+        //     "total_price":"80.5710",
+        //     "trade_no_list":"JY202206010180",
+        //     "warehouse_id":1,
+        //     "warehouse_name":"萧山仓-杭州习水村",
+        //     "warehouse_no":"01"
+        // }';
+        // $resJson = json_decode($res);
+        // $infoArr = w2tStockOutRefund($resJson);
+        // dump($infoArr);
 
     }
 
@@ -153,15 +153,13 @@ class Index extends BaseController
         try {
             $startTime = date("Y-m-d H:i:s", $_GET['startTime']);
             $endTime = date("Y-m-d H:i:s", $_GET['endTime']);
-            $rangeTimeArr = getRangeTimeArr($startTime, $endTime);
             $msg = '';
-            foreach($rangeTimeArr as $rangeTime){
-                foreach($warehouseArr as $warehouse){
-                    $msg.=stockIn($rangeTime['start'], $rangeTime['end'], $warehouse);
-                    sleep(2);
-                }
-                
+            
+            foreach($warehouseArr as $warehouse){
+                $msg.=stockIn($startTime, $endTime, $warehouse);
+                sleep(2);
             }
+                
             return $msg;
             
         } catch (\Throwable $th) {
@@ -308,7 +306,46 @@ class Index extends BaseController
             return '出现错误：'.$th;
         }
     }
-
+    public function startDealStockOSutRefund(){
+        $warehouseArr = Db::table('fa_warehouse')->select();
+        try {
+            $startTime = date("Y-m-d H:i:s", $_GET['startTime']);
+            $endTime = date("Y-m-d H:i:s", $_GET['endTime']);
+            
+            $msg = '';
+            
+            foreach($warehouseArr as $wh){
+                $msg.=stockOutRefund($startTime, $endTime, $wh);
+                sleep(1);
+            }
+            
+            return $msg;
+            // return dealStockOutTransfer($startTime, $endTime);
+        } catch (\Throwable $th) {
+            //throw $th;
+            return '出现错误：'.$th;
+        }
+    }
+    public function startDealPurchaseReturn(){
+        $warehouseArr = Db::table('fa_warehouse')->select();
+        try {
+            $startTime = date("Y-m-d H:i:s", $_GET['startTime']);
+            $endTime = date("Y-m-d H:i:s", $_GET['endTime']);
+            $rangeTimeArr = getRangeTimeArr($startTime, $endTime);
+            $msg = '';
+            foreach($rangeTimeArr as $rangeTime){
+                foreach($warehouseArr as $wh){
+                    $msg.=purchaseReturn($rangeTime['start'], $rangeTime['end'], $wh);
+                    sleep(1);
+                }
+            }
+            return $msg;
+            // return dealStockOutTransfer($startTime, $endTime);
+        } catch (\Throwable $th) {
+            //throw $th;
+            return '出现错误：'.$th;
+        }
+    }
 }
 
 function addWh(){
@@ -547,7 +584,7 @@ function stockIn($st, $et, $warehouse){
     // dump($wangData);
 
     if($wangData->status==0){
-        $orders = [];
+        // $orders = [];
         $total = $wangData->data->total_count;
         $msg=$msg.'采购入库 '.$warehouse['wh_name'].' '.date("Y-m-d",strtotime($st)).' 查询到'.$total."条数据".PHP_EOL;
         if($total>0){
@@ -556,53 +593,57 @@ function stockIn($st, $et, $warehouse){
                 $pages += 1;
             }
             for($page=0; $page<$pages; $page++){
+                $msg.='正在拉取第'.($page+1).'页数据，共'.($page+1).'页';
                 $pageData = stockinPurchase($st, $et, $pageSize, $page, $warehouse['wh_code']);
-                $orders = array_merge($orders, $pageData->data->order);
-            }
-            foreach($orders as $order){
+                // $orders = array_merge($orders, $pageData->data->order);
+                $orders = $pageData->data->order;
+                foreach($orders as $order){
                 
-                // 查询单据是否已转到t+
-                $row = Db::table('fa_order')->where('order_num',$order->order_no)->find();
-                
-                if(!$row){
-                    // 单据录入到t+
-                    $newRow = [
-                        'warehouse'=>$warehouse['wh_name'],
-                        'order_num'=>$order->order_no, 
-                        'order_detail'=>json_encode($order), 
-                        'order_time'=>$order->modified/1000,
-                        'order_type'=>'采购入库单',
-                        'status'=>'未同步',
-                        'result'=>'未同步',
-                    ];
+                    // 查询单据是否已转到t+
+                    $row = Db::table('fa_order')->where('order_num',$order->order_no)->find();
                     
-                    $res = w2tStockIn($order);
-                    
-                    if($res=='null'){
-                        // 单据信息录入到数据库
-                        $newRow['status'] = '已同步';
-                        $newRow['result'] = '已同步';
-                    }else{
-                        $newRow['result'] = translateErrMsg(json_decode($res)->message);
-                        $msg.="录入失败：".$order->order_no.",".$res.PHP_EOL;
-                    }
-                    Db::table('fa_order')->insert($newRow);
-                }else if($row['status']=='未同步'){
-                    $res = w2tStockIn($order);
-                    if($res=='null'){
-                        // 单据信息录入到数据库
-                        $row['status'] = '已同步';
-                        $row['result'] = '已同步';
-                    }else{
-                        $row['result'] = translateErrMsg(json_decode($res)->message);
-                        $msg.="录入失败：".$order->order_no.",".$res.PHP_EOL;
+                    if(!$row){
+                        // 单据录入到t+
+                        $newRow = [
+                            'warehouse'=>$warehouse['wh_name'],
+                            'order_num'=>$order->order_no, 
+                            'order_detail'=>json_encode($order), 
+                            'order_time'=>$order->modified/1000,
+                            'order_type'=>'采购入库单',
+                            'status'=>'未同步',
+                            'result'=>'未同步',
+                        ];
                         
+                        $res = w2tStockIn($order);
+                        
+                        if($res=='null'){
+                            // 单据信息录入到数据库
+                            $newRow['status'] = '已同步';
+                            $newRow['result'] = '已同步';
+                        }else{
+                            $newRow['result'] = translateErrMsg(json_decode($res)->message);
+                            $msg.="录入失败：".$order->order_no.",".$res.PHP_EOL;
+                        }
+                        Db::table('fa_order')->insert($newRow);
+                    }else if($row['status']=='未同步'){
+                        $res = w2tStockIn($order);
+                        
+                        if($res=='null'){
+                            // 单据信息录入到数据库
+                            $row['status'] = '已同步';
+                            $row['result'] = '已同步';
+                        }else{
+                            $row['result'] = translateErrMsg(json_decode($res)->message);
+                            $msg.="录入失败：".$order->order_no.",".$res.PHP_EOL;
+                            
+                        }
+                        Db::table('fa_order')->update($row);
                     }
-                    Db::table('fa_order')->update($row);
+                    
                 }
-                
-               
+                sleep(1);
             }
+            
         }
     }else{
         $msg .= '旺店通接口错误';
@@ -662,6 +703,7 @@ function w2tStockIn($w_order){
     $infoArr = getInfoArr($w_order->warehouse_no);
     if(count($infoArr)>0){
         $res = purchaseReceiveCreate($infoArr['appKey'], $infoArr['appSecret'], $infoArr['token'], $content);
+        sleep(1);
     }else{
         $res = `{"code":"EXERROR0001","message":"目标仓库没有可执行账套","data":{"Code":"EXERROR0001","StatusCode":400,"islogerror":"1"}}`;
     }
@@ -1150,8 +1192,8 @@ function stockOutRefund($st, $et, $warehouse){
     $msg = '';
     
     // 查询旺店通单据
-    $wangData = stockinRefund($st, $et, $pageSize, 0, $warehouse['wh_code']);
-    // dump($wangData);
+    $wangData = stockinRefund($st, $et, $pageSize, 1, $warehouse['wh_code']);
+    dump($wangData);
 
     if($wangData->status==0){
         $orders = [];
@@ -1220,6 +1262,7 @@ function stockOutRefund($st, $et, $warehouse){
 
 // wdt退货入库单做成t+销售出库单的负数
 function w2tStockOutRefund($w_order){
+    sleep(1);
     $refundData = refundSearch($w_order->refund_no, 10, 1);
     $refundOrder = $refundData->data->order[0];
 
