@@ -42,6 +42,61 @@ class Index extends BaseController
         // dump($infoArr);
 
     }
+
+    public function handTrans(){
+        $order_no = $_GET['order_data'];
+        $order_type = $_GET['order_type'];
+
+        $types = [
+            '采购入库单'=>[
+                'wdt_api'=>'stockinPurchase',
+                'wdt2tplus_api'=>'w2tStockIn'
+            ],
+            '采购入库单(退)'=>[
+                'wdt_api'=>'wangPurchaseReturnQueryWithDetail',
+                'wdt2tplus_api'=>'w2tPurchaseReturn'
+            ],
+            '其他入库单'=>[
+                'wdt_api'=>'wangStockinOther',
+                'wdt2tplus_api'=>'w2tStockInOther'
+            ],
+            '盘点入库单'=>[
+                'wdt_api'=>'wangQueryStockPdInDetail',
+                'wdt2tplus_api'=>'w2tStockInPd'
+            ],
+            '调拨入库单'=>[
+                'wdt_api'=>'wangStockinTransfer',
+                'wdt2tplus_api'=>'w2tStockInTransfer'
+            ],
+            '其他出库单'=>[
+                'wdt_api'=>'wangStockOutOther',
+                'wdt2tplus_api'=>'w2tStockOutOther'
+            ],
+            '盘点出库单'=>[
+                'wdt_api'=>'wangQueryStockPdOutDetail',
+                'wdt2tplus_api'=>'w2tStockOutPd'
+            ],
+            '调拨出库单'=>[
+                'wdt_api'=>'wangStockoutTransfer',
+                'wdt2tplus_api'=>'w2tStockOutTransfer'
+            ]
+            // '销售出库单(退)'=>[
+            //     'wdt_api'=>'stockinPurchase',
+            //     'wdt2tplus_api'=>'w2tStockIn'
+            // ],
+            // '销售出库单'=>[
+            //     'wdt_api'=>'stockinPurchase',
+            //     'wdt2tplus_api'=>'w2tStockIn'
+            // ]
+        ];
+
+        try {
+            $w_order = $types[$order_type]['wdt_api']($order_no);
+        } catch (\Throwable $th) {
+            throw $th;
+        }
+    }
+
     // 采购入库单
     public function startStockIn(){
         
@@ -120,6 +175,7 @@ class Index extends BaseController
             return '出现错误：'.$th;
         }
     }
+    // 销售出库单
     public function startStockOut(){
 
         $warehouseArr = Db::table('fa_warehouse')->where('wh_type', '账套仓')->select();
@@ -241,161 +297,6 @@ class Index extends BaseController
             //throw $th;
             return '出现错误：'.$th;
         }
-    }
-}
-
-function addWh(){
-    $shop_no = 'DS53,
-            DS52,
-            DS80,
-            DS76,
-            DS74,
-            DS71,
-            DS69,
-            DS66,
-            DS64,
-            DS63,
-            DS59,
-            DS57,
-            DS60,
-            DS55,
-            DS54,
-            A0013,
-            A0011,
-            DS33,
-            A0008,
-            A0007,
-            A0006,
-            21,
-            DS146,
-            DS145,
-            B1022,
-            DS51,
-            DS46,
-            DS44,
-            06,
-            DS31,
-            DS34,
-            DS24,
-            DS26,
-            DS83,
-            ';
-    $shop_name = '杭州习水村酒业有限公司,
-        民酒汇（杭州）电子商务有限责任公司,
-        民酒汇-抖音民酒汇酒类专营店,
-        杭易-天猫惠群贵礼旗舰店,
-        习水村-快手习水村酒类专营店,
-        习水村-拼多多金沙回沙酒习水村专卖店,
-        习水村-京东沱牌舍得专卖店,
-        浙江良辰美酒贸易有限公司,
-        良辰美酒-淘宝拍卖店,
-        习水村-天猫丹泉习水村专卖店,
-        习水村-抖音习水村酒类专营店,
-        习水村-京东今世缘白酒旗舰店,
-        习水村-天猫习酒习水村专卖店,
-        习水村-天猫摘要习水村专卖店,
-        习水村-天猫石库门习水村专卖店,
-        习水村-天猫衡水老白干习水村专卖店,
-        习水村-天猫咸亨习水村专卖店,
-        杭易-天猫易元宏雷酒类专营店,
-        习水村-拼多多惠峰酒类专营店,
-        习水村-拼多多习酒习水村专卖店,
-        习水村-拼多多盛峰酒类专营店,
-        杭易-拼多多林川酒类专营店,
-        杭易-拼多多致中和酒类旗舰店,
-        杭易-拼多多易元宏雷酒类专营店,
-        杭州易元宏雷贸易有限公司（非电商）,
-        习水村-京东习酒酒类旗舰店,
-        习水村-京东金沙酒类旗舰店,
-        习水村-京东衡水老白干酒类旗舰店,
-        杭易-京东易元宏雷官方旗舰店,
-        杭易-京东咸亨旗舰店,
-        杭易-京东致中和旗舰店,
-        杭易-京东购喝旗舰店,
-        杭易-京东浣纱坊旗舰店,
-        习水村-天猫淘特店';
-    $account_name = '习水村,
-                    民酒汇,
-                    民酒汇,
-                    杭易,
-                    习水村,
-                    习水村,
-                    习水村,
-                    良辰美酒,
-                    良辰美酒,
-                    习水村,
-                    习水村,
-                    习水村,
-                    习水村,
-                    习水村,
-                    习水村,
-                    习水村,
-                    习水村,
-                    杭易,
-                    习水村,
-                    习水村,
-                    习水村,
-                    杭易,
-                    杭易,
-                    杭易,
-                    杭易,
-                    习水村,
-                    习水村,
-                    习水村,
-                    杭易,
-                    杭易,
-                    杭易,
-                    杭易,
-                    杭易,
-                    习水村';
-    $account_code = '301,
-                    305,
-                    305,
-                    302,
-                    301,
-                    301,
-                    301,
-                    303,
-                    303,
-                    301,
-                    301,
-                    301,
-                    301,
-                    301,
-                    301,
-                    301,
-                    301,
-                    302,
-                    301,
-                    301,
-                    301,
-                    302,
-                    302,
-                    302,
-                    302,
-                    301,
-                    301,
-                    301,
-                    302,
-                    302,
-                    302,
-                    302,
-                    302,
-                    301';
-    $shop_no_arr = explode(',', $shop_no);
-    $shop_name_arr = explode(',', $shop_name);
-    $account_code_arr = explode(',', $account_code);
-    $account_name_arr = explode(',', $account_name);
-    $size = count($shop_no_arr);
-    
-    for($index=0; $index<$size; $index++){
-        $row = [
-            'shop_no'=>trim($shop_no_arr[$index]), 
-            'shop_name'=>trim($shop_name_arr[$index]), 
-            'account_code'=>trim($account_code_arr[$index]),
-            'account_name'=>trim($account_name_arr[$index])
-        ];
-        Db::table('fa_shop')->insert($row);
     }
 }
 
