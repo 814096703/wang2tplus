@@ -1035,7 +1035,14 @@ function stockOutRefund($st, $et, $warehouse){
                             $newRow['result'] = translateErrMsg(json_decode($res)->message);
                             $msg.="录入失败：".$order->order_no.",".$res.PHP_EOL;
                         }
-                        Db::table('fa_order')->insert($newRow);
+                        try {
+                            //code...
+                            Db::table('fa_order')->insert($newRow);
+                        } catch (\Throwable $th) {
+                            // dump($newRow);
+                            echo $th;
+                        }
+                        
                     }else if($row['status']=='未同步'){
                         $res = w2tStockOutRefund($order);
                         if($res=='null'){
@@ -1043,11 +1050,19 @@ function stockOutRefund($st, $et, $warehouse){
                             $row['status'] = '已同步';
                             $row['result'] = '已同步';
                         }else{
+                           
                             $row['result'] = translateErrMsg(json_decode($res)->message);
                             $msg.="录入失败：".$order->order_no.",".$res.PHP_EOL;
                             
                         }
-                        Db::table('fa_order')->update($row);
+                        try {
+                            //code...
+                            Db::table('fa_order')->update($row);
+                        } catch (\Throwable $th) {
+                            // dump($row);
+                            echo $th;
+                        }
+                        
                     }
                     
                    
@@ -1069,11 +1084,9 @@ function w2tStockOutRefund($w_order){
 
     $details = '';
     foreach($w_order->details_list as $key=>$item){
-
-        $price = $item->refund_order_detail_list[0]->price;
-        // echo($price);
-        // echo $w_order->trade_no_list;
-        // echo $w_order->refund_no;
+        $price = count($item->refund_order_detail_list)>0
+                ? $item->refund_order_detail_list[0]->price
+                : $item->checked_cost_price;
         
         $detail = '{
             Inventory: {
@@ -1105,7 +1118,8 @@ function w2tStockOutRefund($w_order){
         },';
     }
      
-
+    $memo = '备注：'.$w_order->remark.'；退还备注：'.$refundOrder->remark;
+    $submemo = substr($memo, 0 ,180);
     // 转化为t+数据格式
     $content = '{
         dto: {
@@ -1125,7 +1139,7 @@ function w2tStockOutRefund($w_order){
                 Code: "'.$w_order->warehouse_no.'"
             },
             '.$saleman.'
-            Memo: "备注：'.$w_order->remark.'；退还备注：'.$refundOrder->remark.'",
+            Memo: "'.$submemo.'",
             RDRecordDetails: [
                 '.$details.'
             ]
@@ -1140,7 +1154,7 @@ function w2tStockOutRefund($w_order){
         sleep(1);
     }else{
         $res = '{"code":"EXERROR0001","message":"目标店铺'.$w_order->shop_no.'没有可执行账套","data":{"Code":"EXERROR0001","StatusCode":400,"islogerror":"1"}}';
-        echo('res='.$res.'end');
+        // echo('res='.$res.'end');
     }
 
     return $res;

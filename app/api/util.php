@@ -75,6 +75,7 @@ function translateErrMsg($msg)
             $msg = $value;
         }
     }
+    $msg = substr($msg, 0 ,480);
     return $msg;
 }
 
