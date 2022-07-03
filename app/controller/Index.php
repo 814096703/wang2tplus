@@ -105,6 +105,77 @@ class Index extends BaseController
         }
     }
 
+    public function handTransLocal(){
+        $types = [
+            '采购入库单'=>[
+                'wdt_api'=>'stockinPurchase',
+                'wdt2tplus_api'=>'w2tStockIn'
+            ],
+            '采购入库单(退)'=>[
+                'wdt_api'=>'wangPurchaseReturnQueryWithDetail',
+                'wdt2tplus_api'=>'w2tPurchaseReturn'
+            ],
+            '其他入库单'=>[
+                'wdt_api'=>'wangStockinOther',
+                'wdt2tplus_api'=>'w2tStockInOther'
+            ],
+            '盘点入库单'=>[
+                'wdt_api'=>'wangQueryStockPdInDetail',
+                'wdt2tplus_api'=>'w2tStockInPd'
+            ],
+            '调拨入库单'=>[
+                'wdt_api'=>'wangStockinTransfer',
+                'wdt2tplus_api'=>'w2tStockInTransfer'
+            ],
+            '其他出库单'=>[
+                'wdt_api'=>'wangStockOutOther',
+                'wdt2tplus_api'=>'w2tStockOutOther'
+            ],
+            '盘点出库单'=>[
+                'wdt_api'=>'wangQueryStockPdOutDetail',
+                'wdt2tplus_api'=>'w2tStockOutPd'
+            ],
+            '调拨出库单'=>[
+                'wdt_api'=>'wangStockoutTransfer',
+                'wdt2tplus_api'=>'w2tStockOutTransfer'
+            ],
+            '销售出库单(退)'=>[
+                'wdt_api'=>'stockinPurchase',
+                'wdt2tplus_api'=>'w2tStockIn'
+            ],
+            '销售出库单'=>[
+                'wdt_api'=>'stockinPurchase',
+                'wdt2tplus_api'=>'w2tStockIn'
+            ]
+        ];
+        // 获取时间
+        $startTime = date("Y-m-d H:i:s", $_GET['startTime']);
+        $endTime = date("Y-m-d H:i:s", $_GET['endTime']);
+        // 获取仓库
+        $warehouse = $_GET['endTime'];
+        // 获取类型
+        $order_type = $_GET['orderType'];
+        // 查找数据库的中的数据
+        $orderRows = Db::table('fa_order')
+        ->where('order_type', $order_type)
+        ->where('warehouse', $warehouse)
+        ->whereTime('order_time', '>=', $startTime)
+        ->whereTime('order_time', '<=', $endTime)
+        ->select();
+        // 循环处理单据数据
+        if($order_type=='销售出库单'){
+            
+        }
+        else{
+            foreach($orderRows as $row){
+            
+            }
+        }
+        
+        // 销售订单单独处理
+        // 将订单按时间获取，然后按
+    }
+
     // 采购入库单
     public function startStockIn(){
         
