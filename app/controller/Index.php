@@ -21,21 +21,21 @@ class Index extends BaseController
     }
 
     public function test(){
-        // $range =  stockIn('2022-06-01 00:00:00', '2022-06-01 23:59:59', '12');
-        // $range = dealStockInTransfer('2022-06-01 00:00:00', '2022-06-06 00:00:00');
-        // $range = dealStockOutTransfer('2022-06-01 00:00:00', '2022-06-04 00:00:00', $warehouse);
-        // $warehouse = Db::table('fa_warehouse')->where('wh_code', '01')->find();
-        // $range =  stockOutRefund('2022-06-01 00:00:00', '2022-06-22 00:00:00', $warehouse);
+        $st = '2022-06-01 00:00:00';
+        $et = '2022-06-30 00:00:00';
+
+        $targetUrl = 'http://zjyyhlgyl.gnway.vip:15786';
+        echo("开始同步\n");
+        echo($targetUrl.'/index.php/Index/handTransLocal?startTime='.strtotime($st).'&&endTime='.strtotime($et));
         
-        // dump($range);
-        $wh = Db::table('fa_warehouse')->where('wh_code', '110025428')->find();
+        // $wh = Db::table('fa_warehouse')->where('wh_code', '110025428')->find();
         // $w_order_str = '{"tax": "0.0000", "remark": "", "status": "110", "weight": "17.0400", "created": "1654483120000", "id_card": "", "shop_id": 117, "shop_no": "DS53", "currency": "", "discount": "0.0000", "fullname": "郁钢梁", "modified": "2022-06-07 07:49:13", "order_no": "CK312556", "post_fee": "0.0000", "tax_rate": "0.0000", "trade_id": 373840, "trade_no": "JY202206060173", "cs_remark": "\"猫超南昌PON220515316600569PON220517317140898PON220522317868996\"", "flag_name": "无", "nick_name": "浙江天猫网络科技有限公司(经销）", "shop_name": "杭州习水村酒业有限公司", "bad_reason": 0, "cod_amount": "0.0000", "invoice_id": 0, "order_type": 1, "receivable": "62520.0000", "trade_from": 2, "trade_time": "1654483048000", "trade_type": 2, "customer_no": "KH202206020155", "employee_no": "015", "goods_count": "198.0000", "package_fee": "0", "picklist_no": "", "platform_id": 0, "post_amount": "0.0000", "salesman_no": "015", "shop_remark": "", "stockout_id": 316300, "trade_label": "", "block_reason": "0", "consign_time": "2022-06-07 07:48:40", "details_list": [{"paid": "24295.2700", "prop1": "", "prop2": "", "prop3": "", "prop4": "", "prop5": "", "prop6": "", "rec_id": 431907, "remark": "", "weight": "0.0000", "barcode": "6901481078479", "spec_id": 750, "spec_no": "习酒142", "src_oid": "AD202206060272", "src_tid": "AT202206060030", "discount": "0.0000", "goods_id": 765, "goods_no": "XIJIU142", "suite_no": "", "tax_rate": "0.0000", "from_mask": 0, "gift_type": 0, "spec_code": "", "spec_name": "53°500ml*6习酒君品（新品透明盒）", "cost_price": "0.0000", "good_prop1": "", "good_prop2": "", "good_prop3": "", "good_prop4": "", "good_prop5": "", "good_prop6": "", "goods_name": "53°500ml*6习酒君品（新品透明盒）", "goods_type": 1, "sell_price": "1350.0000", "goods_count": "18.0000", "platform_id": "0", "share_price": "1350.0000", "stockout_id": 316300, "market_price": "1350.0000", "share_amount": "24300.0000", "total_amount": "0.0000", "refund_status": "0", "sale_order_id": 487921, "src_order_detail_id": 487921, "position_details_list": [{"batch_no": "", "expire_date": "", "position_id": -2, "position_no": "采购未上架", "position_goods_count": "18.0000"}]}, {"paid": "1376.0900", "prop1": "", "prop2": "", "prop3": "", "prop4": "", "prop5": "", "prop6": "", "rec_id": 431908, "remark": "", "weight": "17.0400", "barcode": "6901481019601", "spec_id": 767, "spec_no": "习酒147", "src_oid": "AD202206060273", "src_tid": "AT202206060030", "discount": "0.0000", "goods_id": 783, "goods_no": "XIJIU147", "suite_no": "", "tax_rate": "0.0000", "from_mask": 0, "gift_type": 0, "spec_code": "", "spec_name": "53°500ml*6习酒方品·鎏单瓶", "unit_name": "瓶", "cost_price": "0.0000", "good_prop1": "", "good_prop2": "", "good_prop3": "", "good_prop4": "", "good_prop5": "", "good_prop6": "", "goods_name": "53°500ml*6习酒方品·鎏单瓶", "goods_type": 1, "sell_price": "188.0000", "goods_count": "12.0000", "platform_id": "0", "share_price": "188.0000", "stockout_id": 316300, "market_price": "188.0000", "share_amount": "2256.0000", "total_amount": "0.0000", "refund_status": "0", "sale_order_id": 487922, "src_order_detail_id": 487922, "position_details_list": [{"batch_no": "", "expire_date": "", "position_id": -2, "position_no": "采购未上架", "position_goods_count": "12.0000"}]}, {"paid": "14212.5200", "prop1": "", "prop2": "", "prop3": "", "prop4": "", "prop5": "", "prop6": "", "rec_id": 431909, "remark": "", "weight": "0.0000", "barcode": "6901481019991", "spec_id": 886, "spec_no": "习酒166", "src_oid": "AD202206060274", "src_tid": "AT202206060030", "discount": "0.0000", "goods_id": 922, "goods_no": "XIJIU166", "suite_no": "", "tax_rate": "0.0000", "from_mask": 0, "gift_type": 0, "spec_code": "", "spec_name": "53°500ml*6习酒金质第四代（2021产） 2瓶送一个手提袋", "cost_price": "0.2403", "good_prop1": "", "good_prop2": "", "good_prop3": "", "good_prop4": "", "good_prop5": "", "good_prop6": "", "goods_name": "53°500ml*6习酒金质第四代（2021产）2瓶送1个手提袋", "goods_type": 1, "sell_price": "268.0000", "goods_count": "90.0000", "platform_id": "0", "share_price": "268.0000", "stockout_id": 316300, "market_price": "268.0000", "share_amount": "24120.0000", "total_amount": "21.6270", "refund_status": "0", "sale_order_id": 487923, "src_order_detail_id": 487923, "position_details_list": [{"batch_no": "", "expire_date": "", "position_id": -2, "position_no": "采购未上架", "position_goods_count": "90.0000"}]}, {"paid": "3773.4400", "prop1": "", "prop2": "", "prop3": "", "prop4": "", "prop5": "", "prop6": "", "rec_id": 431910, "remark": "", "weight": "0.0000", "barcode": "6901481020003", "spec_id": 887, "spec_no": "习酒167", "src_oid": "AD202206060275", "src_tid": "AT202206060030", "discount": "0.0000", "goods_id": 923, "goods_no": "XIJIU167", "suite_no": "", "tax_rate": "0.0000", "from_mask": 0, "gift_type": 0, "spec_code": "", "spec_name": "53°500ml*6习酒银质第三代（2021产）", "cost_price": "1.7719", "good_prop1": "", "good_prop2": "", "good_prop3": "", "good_prop4": "", "good_prop5": "", "good_prop6": "", "goods_name": "53°500ml*6习酒银质第三代（2021产）", "goods_type": 1, "sell_price": "158.0000", "goods_count": "66.0000", "platform_id": "0", "share_price": "158.0000", "stockout_id": 316300, "market_price": "158.0000", "share_amount": "10428.0000", "total_amount": "116.9454", "refund_status": "0", "sale_order_id": 487924, "src_order_detail_id": 487924, "position_details_list": [{"batch_no": "", "expire_date": "", "position_id": -2, "position_no": "采购未上架", "position_goods_count": "66.0000"}]}, {"paid": "18862.6800", "prop1": "", "prop2": "", "prop3": "", "prop4": "", "prop5": "", "prop6": "", "rec_id": 431911, "remark": "", "weight": "0.0000", "barcode": "6901481075836", "spec_id": 2061, "spec_no": "习酒197", "src_oid": "AD202206060276", "src_tid": "AT202206060030", "discount": "0.0000", "goods_id": 2148, "goods_no": "XIJIU197", "suite_no": "", "tax_rate": "0.0000", "from_mask": 0, "gift_type": 0, "spec_code": "", "spec_name": "53°500ml*12方品习酱酒（2022产）", "cost_price": "0.0000", "good_prop1": "", "good_prop2": "", "good_prop3": "", "good_prop4": "", "good_prop5": "", "good_prop6": "", "goods_name": "53°500ml*12方品习酱酒（2022产）", "goods_type": 1, "sell_price": "118.0000", "goods_count": "12.0000", "platform_id": "0", "share_price": "118.0000", "stockout_id": 316300, "market_price": "118.0000", "share_amount": "1416.0000", "total_amount": "0.0000", "refund_status": "0", "sale_order_id": 487925, "src_order_detail_id": 487925, "position_details_list": [{"batch_no": "", "expire_date": "", "position_id": -2, "position_no": "采购未上架", "position_goods_count": "12.0000"}]}], "fenxiao_nick": "", "id_card_type": 0, "invoice_type": 0, "logistics_id": 1, "logistics_no": "ZS202206070034", "picklist_seq": 0, "print_remark": "\"猫超南昌PON220515316600569PON220517317140898PON220522317868996\"", "receiver_dtb": "杭州市 萧山区", "receiver_zip": "", "src_order_no": "JY202206060173", "src_trade_no": "AT202206060030", "trade_status": 110, "warehouse_id": 1, "warehouse_no": "01", "buyer_message": "", "customer_name": "刘鹏鸽", "delivery_term": 4, "invoice_title": "", "receiver_area": "浙江省 杭州市 萧山区", "receiver_city": 330100, "receiver_name": "刘鹏鸽", "refund_status": 0, "logistics_code": "121565", "logistics_list": [{"width": "0.0000", "height": "0.0000", "length": "0.0000", "rec_id": 490342, "remark": "", "volume": "0.000000000000", "weight": "17.0400", "postage": "0.0000", "calc_weight": "17.0400", "stockout_id": 316300, "logistics_id": 1, "logistics_no": "ZS202206070034", "package_name": "未知", "logistics_name": "测试"}], "logistics_name": "测试", "logistics_type": 1, "receiver_telno": "", "warehouse_name": "萧山仓-杭州习水村", "invoice_content": "", "receiver_mobile": "18267120734", "goods_total_cost": "138.5724", "receiver_address": "靖江街道宏业路188号", "receiver_country": 0, "stock_check_time": "1654559305000", "receiver_district": 330109, "receiver_province": 330000, "goods_total_amount": "62520.0000", "logistics_print_status": 0, "warehouse_mapping_code": ""}';
         // $w_order = json_decode($w_order_str);
-        $st = '2022-06-02 00:00:00';
-        $et = '2022-06-10 00:00:00';
-        $res = stockOut($st, $et, $wh);
+        // $st = '2022-06-02 00:00:00';
+        // $et = '2022-06-10 00:00:00';
+        // $res = stockOut($st, $et, $wh);
         // $res = w2tStockOut($w_order);
-        echo($res);
+        // echo($res);
         
         // echo date("Y-m-d H:i:s", strtotime('2022-02-11'));
         // addWh();
@@ -44,10 +44,6 @@ class Index extends BaseController
         // foreach($warehouseArr as $warehouse){
         //     echo $warehouse['wh_code'].'\n';
         // }
-        
-        // $resJson = json_decode($res);
-        // $infoArr = w2tStockOutRefund($resJson);
-        // dump($infoArr);
 
     }
 
@@ -109,71 +105,92 @@ class Index extends BaseController
         $types = [
             '采购入库单'=>[
                 'wdt_api'=>'stockinPurchase',
-                'wdt2tplus_api'=>'w2tStockIn'
+                'wdt2tplus_api'=>'app\controller\w2tStockIn'
             ],
             '采购入库单(退)'=>[
                 'wdt_api'=>'wangPurchaseReturnQueryWithDetail',
-                'wdt2tplus_api'=>'w2tPurchaseReturn'
+                'wdt2tplus_api'=>'app\controller\w2tPurchaseReturn'
             ],
             '其他入库单'=>[
                 'wdt_api'=>'wangStockinOther',
-                'wdt2tplus_api'=>'w2tStockInOther'
+                'wdt2tplus_api'=>'app\controller\w2tStockInOther'
             ],
             '盘点入库单'=>[
                 'wdt_api'=>'wangQueryStockPdInDetail',
-                'wdt2tplus_api'=>'w2tStockInPd'
+                'wdt2tplus_api'=>'app\controller\w2tStockInPd'
             ],
             '调拨入库单'=>[
                 'wdt_api'=>'wangStockinTransfer',
-                'wdt2tplus_api'=>'w2tStockInTransfer'
+                'wdt2tplus_api'=>'app\controller\w2tStockInTransfer'
             ],
             '其他出库单'=>[
                 'wdt_api'=>'wangStockOutOther',
-                'wdt2tplus_api'=>'w2tStockOutOther'
+                'wdt2tplus_api'=>'app\controller\w2tStockOutOther'
             ],
             '盘点出库单'=>[
                 'wdt_api'=>'wangQueryStockPdOutDetail',
-                'wdt2tplus_api'=>'w2tStockOutPd'
+                'wdt2tplus_api'=>'app\controller\w2tStockOutPd'
             ],
             '调拨出库单'=>[
                 'wdt_api'=>'wangStockoutTransfer',
-                'wdt2tplus_api'=>'w2tStockOutTransfer'
+                'wdt2tplus_api'=>'app\controller\w2tStockOutTransfer'
             ],
             '销售出库单(退)'=>[
                 'wdt_api'=>'stockinPurchase',
-                'wdt2tplus_api'=>'w2tStockIn'
+                'wdt2tplus_api'=>'app\controller\w2tStockOutRefund'
             ],
             '销售出库单'=>[
                 'wdt_api'=>'stockinPurchase',
-                'wdt2tplus_api'=>'w2tStockIn'
+                'wdt2tplus_api'=>'app\controller\w2tStockOut'
             ]
         ];
         // 获取时间
         $startTime = date("Y-m-d H:i:s", $_GET['startTime']);
         $endTime = date("Y-m-d H:i:s", $_GET['endTime']);
-        // 获取仓库
-        $warehouse = $_GET['endTime'];
-        // 获取类型
-        $order_type = $_GET['orderType'];
         // 查找数据库的中的数据
-        $orderRows = Db::table('fa_order')
-        ->where('order_type', $order_type)
-        ->where('warehouse', $warehouse)
+        $total = $orderRows = Db::table('fa_order')
+        ->where('status', '未同步')
         ->whereTime('order_time', '>=', $startTime)
         ->whereTime('order_time', '<=', $endTime)
-        ->select();
+        ->count();
+        
         // 循环处理单据数据
-        if($order_type=='销售出库单'){
-            
+        
+        $pageSize = 50;
+        $pages = intval($total / $pageSize);
+        if($total % $pageSize != 0){
+            $pages += 1;
         }
-        else{
+        for($page=0; $page<$pages; $page++){
+            $orderRows = Db::table('fa_order')
+            ->where('status', '未同步')
+            ->whereTime('order_time', '>=', $startTime)
+            ->whereTime('order_time', '<=', $endTime)
+            ->limit($page*$pageSize, ($page+1)*$pageSize)
+            ->select();
             foreach($orderRows as $row){
-            
+                echo $row['order_num'];
+                echo $row['order_type'];
+                $fn = $types[$row['order_type']]['wdt2tplus_api'];
+                echo $fn;
+                $w_order = json_decode($row['order_detail']);
+                $res = $fn($w_order);
+                
+                if($res=='null'){
+                    // 单据信息录入到数据库
+                    $row['status'] = '已同步';
+                    $row['result'] = '已同步';
+                }else{
+                    $row['result'] = translateErrMsg(json_decode($res)->message);
+                    if(strstr($row['result'], '请尝试修改该编号中的流水号后再操作')!=false){
+                        $row['status'] = '已同步';
+                        $row['result'] = '已同步';
+                    }
+                }
+                Db::table('fa_order')->update($row);
             }
         }
         
-        // 销售订单单独处理
-        // 将订单按时间获取，然后按
     }
 
     // 采购入库单
@@ -989,7 +1006,7 @@ function w2tStockOut($w_order){
         }
     }';
 
-    dump($content);
+    // dump($content);
     $infoArr = getInfoArrByshop($w_order->shop_no);
     // $res = saleDispatchCreate($infoArr['appKey'], $infoArr['appSecret'], $infoArr['token'], $content);
     if(count($infoArr)>0){
