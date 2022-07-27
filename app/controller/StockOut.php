@@ -63,6 +63,7 @@ class StockOut extends BaseController{
                 
                 $wangData = qmStockout($pagesize, 1, ['start_time'=>$rangeTime['start'], 'end_time'=>$rangeTime['end'], 'status_type' => '3','status' => '110']);
                 sleep(1);
+                if()
                 if($wangData->status==0){
                     $total = $wangData->data->total_count;
                     if($total>0){
@@ -72,6 +73,7 @@ class StockOut extends BaseController{
                             $pages += 1;
                         }
                         for($page=1; $page<=$pages; $page++){
+                            echo 'page='.$page;
                             $pageData = qmStockout($pagesize, $page, ['start_time'=>$rangeTime['start'], 'end_time'=>$rangeTime['end'], 'status_type' => '3','status' => '110']);
                             $orders = $pageData->data->order;
                             foreach($orders as $order){
@@ -104,6 +106,99 @@ class StockOut extends BaseController{
             echo $th;
         }
         
+    }
+
+    public function DealDayOrder(){
+        $day = date("Y-m-d H:i:s", $_GET['day']);
+        echo $day;
+        $rows= Db::table('fa_order')
+        ->where('status', '未同步')
+        ->where('order_type', '销售出库单')
+        ->whereTime('order_time', 'between', [$day, date('Y-m-d H:i:s',strtotime("$day + 1 days"))])
+        ->select();
+
+        $apiOrder = [];
+        $handmakeOrder = [];
+        foreach($rows as $row){
+            $order = json_decode($row['order_detail']);
+            if($order->trade_from==1){ // trade_from=1 API抓单 
+                array_push($apiOrder, $order);
+            }else{
+                array_push($handmakeOrder, $order);
+            }
+        }
+        foreach($handmakeOrder as $order){
+            // 单据录入到t+
+            try {
+                //code...
+                $res = w2tStockOut($order);
+                // dump($res);
+            } catch (\Throwable $th) {
+                //throw $th;
+                echo $order->order_no;
+                echo $th;
+                $res = '{"message": "录入出错"}';
+                // dump(json_decode($res));
+            }
+            $row = Db::table('fa_order')->where('order_num',$order->order_no)->find();
+            if($res=='null'){
+                // 单据信息录入到数据库
+                $row['order_detail'] = json_encode($order);
+                $row['status'] = '已同步';
+                $row['result'] = '已同步';
+            }else{
+                $row['result'] = translateErrMsg(json_decode($res)->message);
+            }
+            Db::table('fa_order')->update($row);
+        }
+        
+        // 对抓取的订单根据店铺进行细分
+        $shopUsed = [];
+        foreach($apiOrder as $order){
+            if(!in_array($order->shop_no, $shopUsed)){
+                array_push($shopUsed, $order->shop_no);
+            }
+        }
+
+        $devideOrders = [];
+        
+        foreach($shopUsed as $shop){
+            $devideOrders[$shop] = [];
+            foreach($apiOrder as $order){
+                if($order->shop_no==$shop){
+                    array_push($devideOrders[$shop], $order);
+                }
+            }
+            
+        }
+        
+        // 接口抓取 合并录入t+
+        foreach($shopUsed as $shop){
+            $mixOrders = $devideOrders[$shop];
+            if(count($mixOrders)>0){
+                
+                $mixRes = w2tStockOutMany($mixOrders);
+                
+                if($mixRes=='null'){
+                    foreach($mixOrders as $order){
+                        $row = Db::table('fa_order')->where('order_num',$order->order_no)->find();
+                        $row['status'] = '已同步';
+                        $row['result'] = '已同步';
+                        Db::table('fa_order')->update($row);
+                    }
+                }else{
+                    foreach($mixOrders as $order){
+                        $row = Db::table('fa_order')->where('order_num',$order->order_no)->find();
+                        $errMsg = translateErrMsg(json_decode($mixRes)->message);
+                        $row['result'] = "合并录入失败,部分单据存在问题：".$errMsg;
+                        Db::table('fa_order')->update($row);
+                    }
+                    
+                }
+            }
+        }
+
+        return 'success';
     }
 }
 
@@ -334,7 +429,8 @@ function w2tStockOut($w_order){
         $partner=$w_order->shop_no;
         
     }else{
-        $partner=$w_order->customer_no;
+        
+        $partner=property_exists($w_order, 'customer_no')? $w_order->customer_no: '';
         $saleman = 'Clerk: {
             Code: "'.$w_order->salesman_no.'"
         },';
@@ -373,7 +469,7 @@ function w2tStockOut($w_order){
     // $res = saleDispatchCreate($infoArr['appKey'], $infoArr['appSecret'], $infoArr['token'], $content);
     if(count($infoArr)>0){
         $res = saleDispatchCreate($infoArr['appKey'], $infoArr['appSecret'], $infoArr['token'], $content);
-       
+        sleep(1);
     }else{
         $res = '{"code":"EXERROR0001","message":"目标店铺'.$w_order->shop_no.'没有可执行账套","data":{"Code":"EXERROR0001","StatusCode":400,"islogerror":"1"}}';
         // echo('res='.$res.'end');
@@ -441,6 +537,7 @@ function w2tStockOutMany($orders){
     // $res = saleDispatchCreate($infoArr['appKey'], $infoArr['appSecret'], $infoArr['token'], $content);
     if(count($infoArr)>0){
         $res = saleDispatchCreate($infoArr['appKey'], $infoArr['appSecret'], $infoArr['token'], $content);
+        sleep(1);
     }else{
         $res = '{"code":"EXERROR0001","message":"目标店铺'.$orders[0]->shop_no.'没有可执行账套","data":{"Code":"EXERROR0001","StatusCode":400,"islogerror":"1"}}';
         // echo('res='.$res.'end');
@@ -472,4 +569,37 @@ function getDayArr($st, $et){
     }
 
     return $dayArr;
+}
+
+function getInfoArrByshop($shop_no){
+    // 仓库编码查找仓库
+    $shop = Db::table('fa_shop')
+        ->where('shop_no', $shop_no)
+        ->find();
+    
+    $infoArr = [];
+   
+    // 根据仓库中的账套编码返回接口必须信息
+    if($shop['account_code']=='302'){
+        $infoArr['appKey'] = env('TPLUS2.appKey');
+        $infoArr['appSecret'] = env('TPLUS2.appSecret');
+        $infoArr['token'] = TplusApi2::getOpenToken();
+    }
+    if($shop['account_code']=='301'){
+        $infoArr['appKey'] = env('TPLUS.appKey');
+        $infoArr['appSecret'] = env('TPLUS.appSecret');
+        $infoArr['token'] = getOpenToken();
+    }
+    if($shop['account_code']=='303'){
+        $infoArr['appKey'] = env('TPLUS3.appKey');
+        $infoArr['appSecret'] = env('TPLUS3.appSecret');
+        $infoArr['token'] = TplusApi3::getOpenToken();
+    }
+    if($shop['account_code']=='305'){
+        $infoArr['appKey'] = env('TPLUS4.appKey');
+        $infoArr['appSecret'] = env('TPLUS4.appSecret');
+        $infoArr['token'] = TplusApi4::getOpenToken();
+    }
+    
+    return $infoArr;
 }
