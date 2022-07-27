@@ -19,12 +19,14 @@ class Wang extends BaseController
     }
 
     public function test(){
-        // $res = qmTest('2022-06-07 09:00:00', '2022-06-07 10:00:00', 100, 1, '01');
+        $res = qmTest('2022-07-11 08:00:00', '2022-07-11 09:00:00', 100, 1, '01');
         // $res = stockinRefund('2022-06-01 09:00:00', '2022-06-02 10:00:00', 100, 1, '01');
-        $res = wangPurchaseReturnQueryWithDetail('2022-06-01 00:00:00', '2022-06-16 00:00:00', 10, 0, "01");
+        // $res = wangPurchaseReturnQueryWithDetail('2022-06-01 00:00:00', '2022-06-16 00:00:00', 10, 0, "01");
         // $res = stockinPurchase('2022-02-01', '2022-02-23');
         // $res = wangStockinTransfer('2022-06-01 00:00:00', '2022-06-06 00:00:00', 10, 0);
         // $res = refundSearch('TK2206020021', 10, 1);
+        // $res = wangStockoutOther('2022-06-15 00:00:00', '2022-07-07 00:00:00', 10, 0, "01");
+        
         // echo json_encode($res);
         dump($res);
     }
@@ -93,7 +95,6 @@ function wangStockoutOther($st, $et, $pageSize, $pageNo, $warehouse){
         'start_time' => $st,
         'end_time' => $et,
         'warehouse_no'=>$warehouse,
-        'status'=>'70'
     );
     
     $pager = new \Pager($pageSize, $pageNo, true);

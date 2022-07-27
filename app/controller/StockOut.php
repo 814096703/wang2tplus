@@ -24,12 +24,17 @@ class StockOut extends BaseController{
 
     public function testCommon(){
         $st = '2022-07-11 08:00:00';
-        $et = '2022-07-11 09:00:00';
+        $et = '2022-07-12 09:00:00';
         $dayArr = getDayArr($st, $et);
+
         dump($dayArr);
+        foreach($dayArr as $day){
+            $hours = getDayHours($day.' 00:00:00');
+            dump($hours);
+        }
+        
 
         $whs =  Db::table('fa_warehouse')->select();
-        dump($whs);
         $whsArr = [];
         foreach($whs as $wh){
             array_push($whsArr, $wh['wh_code']);
@@ -37,55 +42,68 @@ class StockOut extends BaseController{
         dump($whsArr);
     }
 
-    public function getOrderFromWang(){
-        $st = date("Y-m-d H:i:s", $_GET['startTime']);
-        $et = date("Y-m-d H:i:s", $_GET['endTime']);
+    public function getDayOrder(){
+        try {
+            //code...
+            $day = date("Y-m-d H:i:s", $_GET['day']);
+            echo $day;
+            $pagesize = 100;
+            $orders = [];
 
-        $pagesize = 100;
-        $rangeTimeArrOut = getRangeTimeArr($st, $et);
-        $orders = [];
-        foreach($rangeTimeArrOut as $rangeTimeOut){
-            if(strtotime($rangeTimeOut['start'])!=strtotime(date("Y-m-d"))){
-                // 获取一天24小时时间段
-                $rangeTimeArr = getDayHours($rangeTimeOut['start']);
-                // 获取一天24小时的全部订单
-                foreach($rangeTimeArr as $rangeTime){
-                    
-                    $wangData = qmStockout($rangeTime['start'], $rangeTime['end'], $pagesize, 1, $warehouse['wh_code']);
-                    sleep(1);
-                    if($wangData->status==0){
+            $whs =  Db::table('fa_warehouse')->select();
+            $whsArr = [];
+            foreach($whs as $wh){
+                array_push($whsArr, $wh['wh_code']);
+            }
+
+            // 获取一天24小时时间段
+            $rangeTimeArr = getDayHours($day);
+            // 获取一天24小时的全部订单
+            foreach($rangeTimeArr as $rangeTime){
+                
+                $wangData = qmStockout($pagesize, 1, ['start_time'=>$rangeTime['start'], 'end_time'=>$rangeTime['end'], 'status_type' => '3','status' => '110']);
+                sleep(1);
+                if($wangData->status==0){
+                    $total = $wangData->data->total_count;
+                    if($total>0){
                         
-                        $total = $wangData->data->total_count;
-                        
-                        if($total>0){
-                            
-                            $pages = intval($total / $pagesize);
-                            if($total % $pagesize != 0){
-                                $pages += 1;
+                        $pages = intval($total / $pagesize);
+                        if($total % $pagesize != 0){
+                            $pages += 1;
+                        }
+                        for($page=1; $page<=$pages; $page++){
+                            $pageData = qmStockout($pagesize, $page, ['start_time'=>$rangeTime['start'], 'end_time'=>$rangeTime['end'], 'status_type' => '3','status' => '110']);
+                            $orders = $pageData->data->order;
+                            foreach($orders as $order){
+                                if(in_array($order->warehouse_no, $whsArr)){
+                                    // dump($order);
+                                    $row = Db::table('fa_order')->where('order_num',$order->order_no)->find();
+                                    if(!$row){
+                                        $newRow = [
+                                            'warehouse'=>$order->warehouse_no,
+                                            'order_num'=>$order->order_no, 
+                                            'order_detail'=>json_encode($order), 
+                                            'order_time'=>strtotime($order->consign_time),
+                                            'order_type'=>'销售出库单',
+                                            'status'=>'未同步',
+                                            'result'=>'未同步',
+                                        ];
+                                        Db::table('fa_order')->insert($newRow); 
+                                        echo $order->order_no;
+                                    }
+                                    
+                                }
                             }
-                            for($page=1; $page<=$pages; $page++){
-                                $pageData = qmStockout($rangeTime['start'], $rangeTime['end'], $pagesize, $page, $warehouse['wh_code']);
-                                $orders = array_merge($orders, $pageData->data->order);
-                            }
+                            sleep(1);
                         }
                     }
                 }
             }
+        } catch (\Throwable $th) {
+            //throw $th;
+            echo $th;
         }
-        $whs =  Db::table('fa_warehouse')->select();
-        foreach($orders as $order){
-
-        }
-
-        $newRow = [
-            'warehouse'=>$warehouse['wh_name'],
-            'order_num'=>$order->order_no, 
-            'order_detail'=>json_encode($order), 
-            'order_time'=>strtotime($order->consign_time),
-            'order_type'=>'销售出库单',
-            'status'=>'未同步',
-            'result'=>'未同步',
-        ];
+        
     }
 }
 
