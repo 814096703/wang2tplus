@@ -21,6 +21,71 @@ class StockOut extends BaseController{
         $res = qmStockout(100, 1, ['start_time'=>$st, 'end_time'=>$et, 'status_type' => '3','status' => '110','warehouse_no'=>$warehouse]);
         dump($res);
     }
+
+    public function testCommon(){
+        $st = '2022-07-11 08:00:00';
+        $et = '2022-07-11 09:00:00';
+        $rangeTimeArrOut = getRangeTimeArr($st, $et);
+        dump($rangeTimeArrOut);
+        $whs =  Db::table('fa_warehouse')->select();
+        dump($whs);
+        $whsArr = [];
+        foreach($whs as $wh){
+            array_push($whsArr, $wh['wh_code']);
+        }
+        dump($whsArr);
+    }
+
+    public function getOrderFromWang(){
+        $st = date("Y-m-d H:i:s", $_GET['startTime']);
+        $et = date("Y-m-d H:i:s", $_GET['endTime']);
+
+        $pagesize = 100;
+        $rangeTimeArrOut = getRangeTimeArr($st, $et);
+        $orders = [];
+        foreach($rangeTimeArrOut as $rangeTimeOut){
+            if(strtotime($rangeTimeOut['start'])!=strtotime(date("Y-m-d"))){
+                // 获取一天24小时时间段
+                $rangeTimeArr = getDayHours($rangeTimeOut['start']);
+                // 获取一天24小时的全部订单
+                foreach($rangeTimeArr as $rangeTime){
+                    
+                    $wangData = qmStockout($rangeTime['start'], $rangeTime['end'], $pagesize, 1, $warehouse['wh_code']);
+                    sleep(1);
+                    if($wangData->status==0){
+                        
+                        $total = $wangData->data->total_count;
+                        
+                        if($total>0){
+                            
+                            $pages = intval($total / $pagesize);
+                            if($total % $pagesize != 0){
+                                $pages += 1;
+                            }
+                            for($page=1; $page<=$pages; $page++){
+                                $pageData = qmStockout($rangeTime['start'], $rangeTime['end'], $pagesize, $page, $warehouse['wh_code']);
+                                $orders = array_merge($orders, $pageData->data->order);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        $whs =  Db::table('fa_warehouse')->select();
+        foreach($orders as $order){
+            
+        }
+
+        $newRow = [
+            'warehouse'=>$warehouse['wh_name'],
+            'order_num'=>$order->order_no, 
+            'order_detail'=>json_encode($order), 
+            'order_time'=>strtotime($order->consign_time),
+            'order_type'=>'销售出库单',
+            'status'=>'未同步',
+            'result'=>'未同步',
+        ];
+    }
 }
 
 // 销售出库单
