@@ -25,8 +25,9 @@ class StockOut extends BaseController{
     public function testCommon(){
         $st = '2022-07-11 08:00:00';
         $et = '2022-07-11 09:00:00';
-        $rangeTimeArrOut = getRangeTimeArr($st, $et);
-        dump($rangeTimeArrOut);
+        $dayArr = getDayArr($st, $et);
+        dump($dayArr);
+
         $whs =  Db::table('fa_warehouse')->select();
         dump($whs);
         $whsArr = [];
@@ -73,7 +74,7 @@ class StockOut extends BaseController{
         }
         $whs =  Db::table('fa_warehouse')->select();
         foreach($orders as $order){
-            
+
         }
 
         $newRow = [
@@ -428,4 +429,29 @@ function w2tStockOutMany($orders){
     }
 
     return $res;
+}
+
+function getDayArr($st, $et){
+    $stInt = strtotime($st);
+    $etInt = strtotime($et);
+    $dayArr = [];
+    if($stInt>$etInt){
+        return $dayArr;
+    }
+    
+    $start = date('Y-m-d', $stInt);
+    $end = date('Y-m-d', $etInt);
+
+    array_push($dayArr, $start);
+
+    if($start==$end){
+        return $dayArr;
+    }
+    $next = date('Y-m-d',strtotime("$start + 1 days"));
+    while(strtotime($next) <= strtotime($end)){
+        array_push($dayArr, $next);
+        $next = date('Y-m-d',strtotime("$next + 1 days"));
+    }
+
+    return $dayArr;
 }
