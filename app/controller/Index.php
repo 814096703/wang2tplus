@@ -15,6 +15,78 @@ include_once(__DIR__."/../api/util.php");
 
 class Index extends BaseController
 {
+
+    public function refreshRow(){
+        $id = $_GET['id'];
+        $msg = '';
+        $row = Db::table('fa_order')->where('id',$id)->find();
+
+        if(!$row){
+            $msg='不存在记录';
+        }
+        elseif($row['status']=='已同步'){
+            $msg='已同步';
+        }
+        elseif($row['status']=='未同步'){
+            
+            $order = json_decode($row['order_detail']);
+            
+            $res = '{"message": "没有找到对应同步方法"}';
+
+            switch($row['order_type']){
+                case '采购入库单':
+                    $res = w2tStockIn($order);
+                    break;
+                case '采购入库单(退)':
+                    $res = w2tPurchaseReturn($order);
+                    break;
+                case '其他入库单':
+                    $res = w2tStockInOther($order);
+                    break;
+                case '盘点入库单':
+                    $res = w2tStockInPd($order);
+                    break;
+                case '调拨入库单':
+                    $res = w2tStockInTransfer($order);
+                    break;
+                case '其他出库单':
+                    $res = w2tStockOutOther($order);
+                    break;
+                case '盘点出库单':
+                    $res = w2tStockOutPd($order);
+                    break;
+                case '调拨出库单':
+                    $res = w2tStockOutTransfer($order);
+                    break;
+                case '销售出库单(退)':
+                    $res = w2tStockOutRefund($order);
+                    break;
+                case '销售出库单':
+                    $res = w2tStockOut($order);
+                    break;
+            }
+            
+            if($res=='null'){
+                // 单据信息录入到数据库
+                $row['status'] = '已同步';
+                $row['result'] = '已同步';
+                $msg.="同步成功：".$row['result'];
+            }else{
+                $row['result'] = translateErrMsg(json_decode($res)->message);
+                $msg.="同步失败：".$row['result'];
+                
+            }
+            Db::table('fa_order')->update($row);
+        }
+        
+
+        $result = [
+            'msg'=>$id.' '.$msg,
+            'code'=>200,
+        ];
+        return json($result);
+    }
+
     public function index()
     {
         return '<style type="text/css">*{ padding: 0; margin: 0; } div{ padding: 4px 48px;} a{color:#2E5CD5;cursor: pointer;text-decoration: none} a:hover{text-decoration:underline; } body{ background: #fff; font-family: "Century Gothic","Microsoft yahei"; color: #333;font-size:18px;} h1{ font-size: 100px; font-weight: normal; margin-bottom: 12px; } p{ line-height: 1.6em; font-size: 42px }</style><div style="padding: 24px 48px;"> <h1>:) </h1><p> ThinkPHP V' . \think\facade\App::version() . '<br/><span style="font-size:30px;">14载初心不改 - 你值得信赖的PHP框架</span></p><span style="font-size:25px;">[ V6.0 版本由 <a href="https://www.yisu.com/" target="yisu">亿速云</a> 独家赞助发布 ]</span></div><script type="text/javascript" src="https://tajs.qq.com/stats?sId=64890268" charset="UTF-8"></script><script type="text/javascript" src="https://e.topthink.com/Public/static/client.js"></script><think id="ee9b1aa918103c4fc"></think>';
@@ -85,12 +157,12 @@ class Index extends BaseController
                 'wdt2tplus_api'=>'w2tStockOutTransfer'
             ]
             // '销售出库单(退)'=>[
-            //     'wdt_api'=>'stockinPurchase',
+            //     'wdt_api'=>'',
             //     'wdt2tplus_api'=>'w2tStockIn'
             // ],
             // '销售出库单'=>[
-            //     'wdt_api'=>'stockinPurchase',
-            //     'wdt2tplus_api'=>'w2tStockIn'
+            //     'wdt_api'=>'',
+            //     'wdt2tplus_api'=>'w2tStockOut'
             // ]
         ];
 
@@ -972,7 +1044,8 @@ function w2tStockOut($w_order){
         $partner=$w_order->shop_no;
         
     }else{
-        $partner=$w_order->customer_no;
+        // $partner=$w_order->customer_no;
+        $partner=property_exists($w_order, 'customer_no')? $w_order->customer_no: '';
         $saleman = 'Clerk: {
             Code: "'.$w_order->salesman_no.'"
         },';
