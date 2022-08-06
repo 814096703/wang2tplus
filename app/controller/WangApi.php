@@ -13,26 +13,24 @@ date_default_timezone_set('PRC');
 
 class WangApi extends BaseController
 {
-    public function currencyFn(){
-        $fn = $_POST['fn'];
-        $pars = $fn()
-        
-    }
-
     public function index()
     {
         return '<style type="text/css">*{ padding: 0; margin: 0; } div{ padding: 4px 48px;} a{color:#2E5CD5;cursor: pointer;text-decoration: none} a:hover{text-decoration:underline; } body{ background: #fff; font-family: "Century Gothic","Microsoft yahei"; color: #333;font-size:18px;} h1{ font-size: 100px; font-weight: normal; margin-bottom: 12px; } p{ line-height: 1.6em; font-size: 42px }</style><div style="padding: 24px 48px;"> <h1>:) </h1><p> ThinkPHP V' . \think\facade\App::version() . '<br/><span style="font-size:30px;">14载初心不改 - 你值得信赖的PHP框架</span></p><span style="font-size:25px;">[ V6.0 版本由 <a href="https://www.yisu.com/" target="yisu">亿速云</a> 独家赞助发布 ]</span></div><script type="text/javascript" src="https://tajs.qq.com/stats?sId=64890268" charset="UTF-8"></script><script type="text/javascript" src="https://e.topthink.com/Public/static/client.js"></script><think id="ee9b1aa918103c4fc"></think>';
     }
 
     public function test(){
-        // $res = qmTest('2022-06-07 09:00:00', '2022-06-07 10:00:00', 100, 1, '01');
+        $res = qmStockout(10, 1, [
+            'start_time'=>'2022-08-06 09:00:00', 
+            'end_time'=>'2022-08-06 10:00:00',
+            'status_type' => '3',
+            'status' => '110'
+        ]);
+        trace('test', 'info');
         // $res = stockinRefund('2022-06-01 09:00:00', '2022-06-02 10:00:00', 100, 1, '01');
-        $res = wangPurchaseReturnQueryWithDetail('2022-06-01 00:00:00', '2022-06-16 00:00:00', 10, 0, "01");
-        // $res = stockinPurchase('2022-02-01', '2022-02-23');
-        // $res = wangStockinTransfer('2022-06-01 00:00:00', '2022-06-06 00:00:00', 10, 0);
-        // $res = refundSearch('TK2206020021', 10, 1);
+        trace($res, 'info');
         // echo json_encode($res);
         dump($res);
+        
     }
 }
 
@@ -43,8 +41,8 @@ function stockinPurchase($st, $et, $pageSize, $pageNo, $pars, $otherPars=[]){
    
     $pars = array
     (
-        'start_time' => $start_time,
-        'end_time' => $end_time,
+        'start_time' => $st,
+        'end_time' => $et,
         'status'=>'80'
     );
     if($otherPars && count($otherPars)>0){
