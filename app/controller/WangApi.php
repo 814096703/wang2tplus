@@ -35,7 +35,7 @@ class WangApi extends BaseController
 }
 
 // 采购入库单
-function stockinPurchase($st, $et, $pageSize, $pageNo, $pars, $otherPars=[]){
+function stockinPurchase($st, $et, $pageSize, $pageNo, $otherPars=[]){
     
     $client = new \WdtErpClient(env('WANG.service_url'), env('WANG.sid'), env('WANG.appkey'), env('WANG.appsecret'));
    
@@ -54,7 +54,7 @@ function stockinPurchase($st, $et, $pageSize, $pageNo, $pars, $otherPars=[]){
 }
 
 // 其他入库单（其他入库业务）
-function wangStockinOther($st, $et, $pageSize, $pageNo, $pars, $otherPars=[]){
+function wangStockinOther($st, $et, $pageSize, $pageNo, $otherPars=[]){
     $client = new \WdtErpClient(env('WANG.service_url'), env('WANG.sid'), env('WANG.appkey'), env('WANG.appsecret'));//直接输入ip参数
     
     $pars = array
@@ -74,7 +74,7 @@ function wangStockinOther($st, $et, $pageSize, $pageNo, $pars, $otherPars=[]){
 }
 
 // 调拨入库单
-function wangStockinTransfer($st, $et, $pageSize, $pageNo, $pars, $otherPars=[]){
+function wangStockinTransfer($st, $et, $pageSize, $pageNo, $otherPars=[]){
     $client = new \WdtErpClient(env('WANG.service_url'), env('WANG.sid'), env('WANG.appkey'), env('WANG.appsecret'));//直接输入ip参数
     
     $pars = array
@@ -96,7 +96,7 @@ function wangStockinTransfer($st, $et, $pageSize, $pageNo, $pars, $otherPars=[])
 }
 
 // 其他出库单
-function wangStockoutOther($st, $et, $pageSize, $pageNo, $pars, $otherPars=[]){
+function wangStockoutOther($st, $et, $pageSize, $pageNo, $otherPars=[]){
     $client = new \WdtErpClient(env('WANG.service_url'), env('WANG.sid'), env('WANG.appkey'), env('WANG.appsecret'));//直接输入ip参数
     
     $pars = array
@@ -115,7 +115,7 @@ function wangStockoutOther($st, $et, $pageSize, $pageNo, $pars, $otherPars=[]){
 }
 
 // 调拨出库单
-function wangStockoutTransfer($st, $et, $pageSize, $pageNo, $pars, $otherPars=[]){
+function wangStockoutTransfer($st, $et, $pageSize, $pageNo, $otherPars=[]){
     $client = new \WdtErpClient(env('WANG.service_url'), env('WANG.sid'), env('WANG.appkey'), env('WANG.appsecret'));//直接输入ip参数
     
     $pars = array
@@ -134,7 +134,7 @@ function wangStockoutTransfer($st, $et, $pageSize, $pageNo, $pars, $otherPars=[]
 }
 
 // 盘点入库单
-function wangQueryStockPdInDetail($st, $et, $pageSize, $pageNo, $pars, $otherPars=[]){
+function wangQueryStockPdInDetail($st, $et, $pageSize, $pageNo, $otherPars=[]){
     $client = new \WdtErpClient(env('WANG.service_url'), env('WANG.sid'), env('WANG.appkey'), env('WANG.appsecret'));//直接输入ip参数
     
     $pars = array
@@ -154,7 +154,7 @@ function wangQueryStockPdInDetail($st, $et, $pageSize, $pageNo, $pars, $otherPar
 }
 
 // 盘点出库单
-function wangQueryStockPdOutDetail($st, $et, $pageSize, $pageNo, $pars, $otherPars=[]){
+function wangQueryStockPdOutDetail($st, $et, $pageSize, $pageNo, $otherPars=[]){
     $client = new \WdtErpClient(env('WANG.service_url'), env('WANG.sid'), env('WANG.appkey'), env('WANG.appsecret'));//直接输入ip参数
     
     $pars = array
@@ -300,8 +300,66 @@ function qmStockout($pageSize, $pageNo, $params){
     }
 }
 
+// 销售出库单（奇门）公共接口使用
+function qmStockoutForCommon($st, $et, $pageSize, $pageNo, $otherPars=[]){
+
+    $wdtAppKey = env('WANG.appkey');
+    $wdtAppSecret = env('WANG.appsecret');
+    $wdtSecretArr = explode(':', $wdtAppSecret);
+    $wdtSalt = $wdtSecretArr[1];
+    $wdtSecret = $wdtSecretArr[0];
+    $client = new \QimenCloudClient(env('WANG.qmAppkey'), '4bafe14675df13f72da15a96be473971');
+
+
+    // $client->gatewayUrl = 'http://3ldsmu02o9.api.taobao.com/router/qmtest';//测试
+    $client->gatewayUrl = 'http://3ldsmu02o9.api.taobao.com/router/qm';// 正式环境
+    $client->targetAppkey = '21363512';
+    $client->format = 'json';
+
+    $request = new \WdtWmsStockoutSalesQuerywithdetailRequest();
+
+    $timestamp = date("Y-m-d H:i:s");
+
+    $params = array(
+        'start_time' => $st,
+        'end_time' => $et,
+        'status_type' => '3',
+        'status' => '110',
+    );
+    if($otherPars && count($otherPars)>0){
+        array_merge($params, $otherPars);
+    }
+    
+    $pager = array(
+        'page_size' => $pageSize,
+        'page_no' => $pageNo
+    );
+    $request->setParams(json_encode($params));
+    $request->setPager(json_encode($pager));
+    $request->setDatetime($timestamp);
+    // dump($timestamp);
+    $request->setWdtAppkey($wdtAppKey);
+    $request->setWdtSalt($wdtSalt);
+    $request->putOtherTextParam("wdt3_customer_id", "xishuicun3");
+
+    $wdtUtils = new \WdtUtils();
+    $wdtSign = $wdtUtils->getQimenCustomWdtSign($request, $wdtSecret);
+    // dump($wdtSign);
+    $request->setWdtSign($wdtSign);
+
+    try {
+        $response = $client->execute($request);
+        // echo "\r\nresponse: " . json_encode($response) . "\n";
+        // dump($response);
+        return $response;
+    } catch (\Exception $e) {
+        echo "\r\nexception:" . $e->getMessage();
+        return (object)['status'=>1];
+    }
+}
+
 // 销退换货入库单（奇门）
-function stockinRefund($pageSize, $pageNo, $params){
+function stockinRefund($st, $et, $pageSize, $pageNo, $otherPars=[]){
 
     $wdtAppKey = env('WANG.appkey');
     $wdtAppSecret = env('WANG.appsecret');
@@ -320,13 +378,14 @@ function stockinRefund($pageSize, $pageNo, $params){
 
     $timestamp = date("Y-m-d H:i:s");
     // 'stockout_no' => 'CKDH20220209105',
-    // $params = array(
-    //     'start_time' => $st,
-    //     'end_time' => $et,
-    //     'status' => '80',
-    //     'warehouse_no'=>$warehouse,
-    //     // 'stockout_no'=> 'CK312635'
-    // );
+    $params = array(
+        'start_time' => $st,
+        'end_time' => $et,
+        'status' => '80',
+    );
+    if($otherPars && count($otherPars)>0){
+        array_merge($params, $otherPars);
+    }
     
     $pager = array(
         'page_size' => $pageSize,
