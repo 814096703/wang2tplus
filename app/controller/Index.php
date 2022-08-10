@@ -1744,7 +1744,7 @@ function dealStockOutPd($st, $et, $warehouse){
                             'warehouse'=>$warehouse['wh_name'],
                             'order_num'=>$order->order_no, 
                             'order_detail'=>json_encode($order), 
-                            'order_time'=>$order->modified/1000,
+                            'order_time'=>$order->consign_time/1000,
                             'order_type'=>'盘点出库单',
                             'status'=>'未同步',
                             'result'=>'未同步',

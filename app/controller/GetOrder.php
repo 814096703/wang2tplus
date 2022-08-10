@@ -2,6 +2,7 @@
 namespace app\controller;
 
 use app\BaseController;
+use Data;
 use think\facade\Db;
 use think\helper\Arr;
 
@@ -13,19 +14,29 @@ include_once(__DIR__."/TplusApi2.php");
 include_once(__DIR__."/TplusApi3.php");
 include_once(__DIR__."/../api/util.php");
 
-class Index extends BaseController
+class GetOrder extends BaseController
 {
+    function test(){
+        $orderType = $_GET['orderType'];
+        $st = date("Y-m-d H:i:s", $_GET['startTime']);
+        $et = date("Y-m-d H:i:s", $_GET['endTime']);
+        // trace('日志信息', 'info');
+        trace($orderType.':'.$st.'--'.$et, 'info');
+        $total = 15;
+        trace("查询到".$total."条数据", 'info');
+    }
 
     // 共同方法
     function dealCommon(){
         try {
             $orderType = $_GET['orderType'];
-
-            trace($orderType.':'.$_GET['startTime'].'--'.$_GET['endTime'], 'info');
             $st = date("Y-m-d H:i:s", $_GET['startTime']);
             $et = date("Y-m-d H:i:s", $_GET['endTime']);
+            // trace('日志信息', 'info');
+            trace($orderType.':'.$st.'--'.$et, 'info');
             $pageSize = 50;
-            $msg = 'success';
+            $msg = '';
+            $status = 'success';
             // 查询旺店通单据
             if($orderType=='销售出库单' || $orderType=='销售出库单(退)'){
                 $wangData = getData($st, $et, $pageSize, 1, $orderType);
@@ -35,7 +46,10 @@ class Index extends BaseController
             
             if(property_exists($wangData, 'status') && $wangData->status==0){
                 $total = $wangData->data->total_count;
-                trace(' 查询到'.$total."条数据", 'info');
+               
+                $insertNum = 0;
+                $updateNum = 0;
+                trace("查询到".$total."条数据", 'info');
                 if($total>0){
                     $warehouseArr = getWarehouseArr($orderType);
                     
@@ -71,30 +85,39 @@ class Index extends BaseController
                                     ];
                                     
                                     Db::table('fa_order')->insert($newRow);
+                                    $insertNum++;
                                     
                                 }else if($row['status']=='未同步'){
                                     $row['order_detail'] = json_encode($order);
                                     $row['order_time'] = $ordertime;
                                     Db::table('fa_order')->update($row);
+                                    $updateNum++;
                                 }
                             }
                         }
                     }
                 }
+                $msg="查询到".$total.'条数据，新增'.$insertNum.'条数据，更新'.$updateNum.'条数据';
             }else{
+                $status = 'error';
                 $msg .= '旺店通接口错误';
             }
             
         } catch (\Throwable $th) {
-            trace($th, 'error');
+            // dump($th);
+            // trace($th->message, 'info');
+            trace('程序报错', 'info');
             $msg = '程序报错';
+            $status = 'error';
         } finally {
-            trace('同步结果：'.$msg, 'info');
+            trace('同步结果:'.$msg, 'info');
             $result = [
+                'status'=>$status,
                 'msg'=>$msg,
                 'code'=>200,
             ];
-            return json_encode($result);
+            return json($result);
+            // return json_encode($result);
         }
        
     }
@@ -267,7 +290,10 @@ function getWarehouseArr($orderType){
             break;
         
     }
-
+    if($warehouseArr) {
+        $warehouseArr = $warehouseArr->toArray();
+    }
+    // return newData();
     return $warehouseArr;
 }
 
