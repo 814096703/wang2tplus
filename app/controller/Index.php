@@ -92,6 +92,44 @@ class Index extends BaseController
         return '<style type="text/css">*{ padding: 0; margin: 0; } div{ padding: 4px 48px;} a{color:#2E5CD5;cursor: pointer;text-decoration: none} a:hover{text-decoration:underline; } body{ background: #fff; font-family: "Century Gothic","Microsoft yahei"; color: #333;font-size:18px;} h1{ font-size: 100px; font-weight: normal; margin-bottom: 12px; } p{ line-height: 1.6em; font-size: 42px }</style><div style="padding: 24px 48px;"> <h1>:) </h1><p> ThinkPHP V' . \think\facade\App::version() . '<br/><span style="font-size:30px;">14载初心不改 - 你值得信赖的PHP框架</span></p><span style="font-size:25px;">[ V6.0 版本由 <a href="https://www.yisu.com/" target="yisu">亿速云</a> 独家赞助发布 ]</span></div><script type="text/javascript" src="https://tajs.qq.com/stats?sId=64890268" charset="UTF-8"></script><script type="text/javascript" src="https://e.topthink.com/Public/static/client.js"></script><think id="ee9b1aa918103c4fc"></think>';
     }
 
+    public function checkOrderWh(){
+        $days = 0;
+        
+        $st = date("Y-m-d", strtotime('-'.($days+1).' day')).' 00:00:00';
+        $et = date("Y-m-d", strtotime('-'.$days.' day')).' 00:00:00';
+        $orders = Db::table('fa_order')
+        ->where('order_time', 'between time', [$st, $et])
+        ->where('order_type', '销售出库单')
+        ->where('status', '已同步')
+        ->select();
+        $shopArr = [];
+        foreach($orders as $order){
+            $d = json_decode($order['order_detail']);
+            if(!array_key_exists($d->shop_no, $shopArr)) {
+                $shopArr[$d->shop_no] = [];
+            }
+            if(!array_key_exists($d->warehouse_no, $shopArr[$d->shop_no])){
+                $shopArr[$d->shop_no][$d->warehouse_no] = [];
+            }
+            array_push($shopArr[$d->shop_no][$d->warehouse_no], $d->order_no);
+        }
+        dump($shopArr);
+
+        // $dateArr = [];
+        // for($i=0;$i<$days;$i++){
+        //     $st = date("Y-m-d", strtotime('-'.($i+1).' day')).' 00:00:00';
+        //     $et = date("Y-m-d", strtotime('-'.$i.' day')).' 00:00:00';
+        //     $orders = Db::table('fa_order')
+        //     ->where('order_time', 'between time', [$st, $et])
+        //     ->where('order_type', '销售出库单')
+        //     ->count();
+        //     $dateArr[$st] = $orders;
+        // }
+        
+        // dump($dateArr);
+        return $st;
+    }
+
     public function test(){
         $st = '2022-06-01 00:00:00';
         $et = '2022-06-30 00:00:00';
@@ -267,14 +305,15 @@ class Index extends BaseController
 
     // 采购入库单
     public function startStockIn(){
-        
-        $warehouseArr = Db::table('fa_warehouse')->where('wh_type', '账套仓')->select();
+
         try {
+            $warehouseArr = Db::table('fa_warehouse')->where('wh_type', '账套仓')->select();
             $startTime = date("Y-m-d H:i:s", $_GET['startTime']);
             $endTime = date("Y-m-d H:i:s", $_GET['endTime']);
-            $msg = '';
+            $msg = 'in function ';
             
             foreach($warehouseArr as $warehouse){
+                $msg.='in loop ';
                 $msg.=stockIn($startTime, $endTime, $warehouse);
                 sleep(1);
             }
@@ -1957,11 +1996,12 @@ function w2tStockInTransfer($w_order){
 
     
     $infoArr = getInfoArr($w_order->to_warehouse_no);
+    var_dump($infoArr);
     $infoArr2 = getInfoArr($w_order->from_warehouse_no);
     // $res = otherReceiveCreate($infoArr['appKey'], $infoArr['appSecret'], $infoArr['token'], $content);
     if(count($infoArr)>0){
         $res = otherReceiveCreate($infoArr['appKey'], $infoArr['appSecret'], $infoArr['token'], $content);
-    }else if(count($infoArr2)>0){
+    }else if(count($infoArr2)>0 && $infoArr['appKey']!=$infoArr2['appKey']){
         $res = otherReceiveCreate($infoArr2['appKey'], $infoArr2['appSecret'], $infoArr2['token'], $content);
     }else{
         $res = `{"code":"EXERROR0001","message":"目标仓库没有可执行账套","data":{"Code":"EXERROR0001","StatusCode":400,"islogerror":"1"}}`;
