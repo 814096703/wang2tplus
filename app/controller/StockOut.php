@@ -66,7 +66,7 @@ class StockOut extends BaseController{
                 $wangData = qmStockout($pagesize, 1, ['start_time'=>$rangeTime['start'], 'end_time'=>$rangeTime['end'], 'status_type' => '3','status' => '110']);
                 sleep(1);
                 
-                if($wangData->status==0){
+                if(isset($wangData->status) && $wangData->status==0){
                     $total = $wangData->data->total_count;
                     if($total>0){
                         
@@ -101,8 +101,11 @@ class StockOut extends BaseController{
                             sleep(1);
                         }
                     }
+                }else{
+                    trace($rangeTime['start'].json_encode($wangData), 'info');
                 }
             }
+            return $day.'done';
         } catch (\Throwable $th) {
             //throw $th;
             // echo $th;

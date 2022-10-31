@@ -136,7 +136,7 @@ function getOrgAccessTokenLocal(){
 
 function getOpenToken(){
     $res = getTokenByPermanentCode(env('TPLUS.appKey'), env('TPLUS.appSecret'), getOrgAccessTokenLocal(), get_user_auth_permanent_code());
-        
+    // trace($res, 'info');   
     $jsonRes = json_decode($res, false);
     $access_token = $jsonRes->result->access_token;
 

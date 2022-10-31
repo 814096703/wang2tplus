@@ -30,6 +30,19 @@ class Wang extends BaseController
         // echo json_encode($res);
         dump($res);
     }
+    public function search(){
+        $client = new \WdtErpClient(env('WANG.service_url'), env('WANG.sid'), env('WANG.appkey'), env('WANG.appsecret'));
+   
+        $pars = array
+        (
+            'stockin_no'=>'RK2210180019',   
+        );
+        
+        $pager = new \Pager(20, 0, true);
+        $response = $client->pageCall("wms.stockin.Purchase.queryWithDetail",$pager, $pars);
+        // dump($response);
+        return json_encode($response);
+    }
 }
 
 // 采购入库单
