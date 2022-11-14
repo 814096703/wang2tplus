@@ -179,41 +179,6 @@ class StockOut extends BaseController{
                 array_push($mixOrderArrs, $arr);
             }
         }
-        
-        
-        // $shopUsed = [];
-        // foreach($apiOrder as $order){
-        //     if(!in_array($order->shop_no, $shopUsed)){
-        //         array_push($shopUsed, $order->shop_no);
-        //     }
-        // }
-
-        // $devideOrders = [];
-        
-        // foreach($shopUsed as $shop){
-        //     $devideOrders[$shop] = [];
-        //     foreach($apiOrder as $order){
-        //         if($order->shop_no==$shop){
-        //             array_push($devideOrders[$shop], $order);
-        //         }
-        //     }
-        // }
-
-        // $shop_wh_order_arr = [];
-        // foreach($shopUsed as $shop){
-        //     $shop_order_arr = $devideOrders[$shop];
-        //     $wh_order_arr = [];
-        //     foreach($shop_order_arr as $shop_order){
-        //         if(!array_key_exists($shop_order->warehouse_no, $wh_order_arr)){
-        //             $wh_order_arr[$shop_order->warehouse_no] = [];
-        //         }
-        //         array_push($wh_order_arr, $shop_order);
-        //     }
-        //     foreach($wh_order_arr as $shop_wh_order){
-        //         array_push($shop_wh_order_arr, $shop_wh_order);
-        //     }
-            
-        // }
 
         
         // 接口抓取 合并录入t+
@@ -248,6 +213,83 @@ class StockOut extends BaseController{
                 }
             }
         }
+
+        return 'success';
+    }
+
+    public function DealDayOrderTest(){
+        $day = date("Y-m-d H:i:s", $_GET['day']);
+        // echo $day;
+        trace('销售出库单DealDayOrder 同步时间：'.$day, 'info');
+        $rows= Db::table('fa_order')
+        // ->where('status', '未同步')
+        ->where('order_type', '销售出库单')
+        ->whereTime('order_time', 'between', [$day, date('Y-m-d H:i:s',strtotime("$day + 1 days"))])
+        ->select();
+        // dump($rows);
+
+        $apiOrder = [];
+        $handmakeOrder = [];
+        foreach($rows as $row){
+            $order = json_decode($row['order_detail']);
+            if($order->trade_from==1){ // trade_from=1 API抓单 
+                array_push($apiOrder, $order);
+            }else{
+                array_push($handmakeOrder, $order);
+            }
+        }
+        
+        // 对抓取的订单根据店铺进行细分
+        $shopArr = [];
+        foreach($apiOrder as $d){
+            if(!array_key_exists($d->shop_no, $shopArr)) {
+                $shopArr[$d->shop_no] = [];
+            }
+            if(!array_key_exists($d->warehouse_no, $shopArr[$d->shop_no])){
+                $shopArr[$d->shop_no][$d->warehouse_no] = [];
+            }
+            array_push($shopArr[$d->shop_no][$d->warehouse_no], $d->order_no);
+        }
+        $mixOrderArrs = [];
+        foreach($shopArr as $shop=>$whArr){
+            foreach($whArr as $wh=>$arr){
+                array_push($mixOrderArrs, $arr);
+            }
+        }
+        dump($mixOrderArrs);
+        
+        // 接口抓取 合并录入t+
+        // foreach($mixOrderArrs as $mixOrders){
+        //     // $mixOrders = $devideOrders[$shop];
+        //     sleep(1);
+        //     // dump($mixOrders);
+        //     if(count($mixOrders)>0){
+                
+        //         try {
+        //             $mixRes = w2tStockOutMany($mixOrders);
+        //         } catch (\Throwable $th) {
+        //             //throw $th;
+        //             trace('合并录入 错误：'.$th, 'info');
+        //         } 
+                
+        //         if($mixRes=='null'){
+        //             foreach($mixOrders as $order){
+        //                 $row = Db::table('fa_order')->where('order_num',$order->order_no)->find();
+        //                 $row['status'] = '已同步';
+        //                 $row['result'] = '已同步';
+        //                 Db::table('fa_order')->update($row);
+        //             }
+        //         }else{
+        //             foreach($mixOrders as $order){
+        //                 $row = Db::table('fa_order')->where('order_num',$order->order_no)->find();
+        //                 $errMsg = translateErrMsg(json_decode($mixRes)->message);
+        //                 $row['result'] = "合并录入失败,部分单据存在问题：".$errMsg;
+        //                 Db::table('fa_order')->update($row);
+        //             }
+                    
+        //         }
+        //     }
+        // }
 
         return 'success';
     }
